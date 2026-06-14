@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">FarmAI</string>
+    <string name="app_subtitle">Farm Management for Indian Farmers</string>
+    <string name="manage_farmers">Manage Farmers</string>
+    <string name="manage_brokers">Manage Brokers</string>
+    <string name="manage_receipts">Manage Receipts</string>
+</resources>

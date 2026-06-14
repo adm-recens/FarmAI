@@ -1,0 +1,21 @@
+<resources>
+    <string name="farmers_title">Farmers</string>
+    <string name="add_farmer">Add Farmer</string>
+    <string name="edit_farmer">Edit Farmer</string>
+    <string name="search_farmers">Search farmers...</string>
+    <string name="no_farmers_found">No farmers found</string>
+    <string name="add_first_farmer">Tap + to add your first farmer</string>
+    <string name="farmer_details">Farmer Details</string>
+    <string name="farmer_name">Farmer Name</string>
+    <string name="farmer_code">Farmer Code</string>
+    <string name="phone_optional">Phone (Optional)</string>
+    <string name="village_optional">Village (Optional)</string>
+    <string name="primary_crop">Primary Crop</string>
+    <string name="save">Save</string>
+    <string name="add">Add</string>
+    <string name="reset">Reset</string>
+    <string name="back">Back</string>
+    <string name="name_code_required">Name and Code are required</string>
+    <string name="farmer_added">Farmer added successfully</string>
+    <string name="farmer_updated">Farmer updated successfully</string>
+</resources>

@@ -1,0 +1,31 @@
+<resources>
+    <string name="receipts_title">Receipts</string>
+    <string name="add_receipt">Add Receipt</string>
+    <string name="search_receipts">Search receipts...</string>
+    <string name="no_receipts_found">No receipts found</string>
+    <string name="add_first_receipt">Tap + to add your first receipt</string>
+    <string name="receipt_detail_title">Receipt Detail</string>
+    <string name="export_pdf">Export PDF</string>
+    <string name="share">Share</string>
+    <string name="receipt_details">Receipt Details</string>
+    <string name="line_items">Line Items</string>
+    <string name="deductions">Deductions</string>
+    <string name="confirm_receipt">Confirm Receipt</string>
+    <string name="delete">Delete</string>
+    <string name="receipt_basic_info">Basic Information</string>
+    <string name="voucher_number">Voucher Number</string>
+    <string name="voucher_date">Voucher Date</string>
+    <string name="farmer_code">Farmer Code</string>
+    <string name="broker_name">Broker Name</string>
+    <string name="add_line_item">Add Line Item</string>
+    <string name="add_deduction">Add Deduction</string>
+    <string name="ocr_text">OCR Text</string>
+    <string name="paste_ocr_text">Paste OCR Text</string>
+    <string name="parse_text">Parse Text</string>
+    <string name="save_receipt">Save Receipt</string>
+    <string name="qty">Qty</string>
+    <string name="price">Price</string>
+    <string name="amount">Amount</string>
+    <string name="remove">Remove</string>
+    <string name="back">Back</string>
+</resources>
