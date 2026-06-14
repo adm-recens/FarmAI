@@ -8,11 +8,16 @@ import com.farmai.core.data.local.dao.BrokerDao
 import com.farmai.core.data.local.dao.FarmerDao
 import com.farmai.core.data.local.dao.ReceiptDao
 import com.farmai.core.data.local.dao.ReportDao
+import com.farmai.core.data.local.dao.BatchDao
+import com.farmai.core.data.local.dao.ReceiptJobDao
 import com.farmai.core.data.local.entity.BrokerEntity
 import com.farmai.core.data.local.entity.DeductionEntity
 import com.farmai.core.data.local.entity.FarmerEntity
 import com.farmai.core.data.local.entity.ReceiptEntity
 import com.farmai.core.data.local.entity.ReceiptLineItemEntity
+import com.farmai.core.data.local.entity.BatchEntity
+import com.farmai.core.data.local.entity.ReceiptJobEntity
+import com.farmai.core.data.local.migration.DatabaseMigrations
 
 @Database(
     entities = [
@@ -20,9 +25,11 @@ import com.farmai.core.data.local.entity.ReceiptLineItemEntity
         BrokerEntity::class,
         ReceiptEntity::class,
         ReceiptLineItemEntity::class,
-        DeductionEntity::class
+        DeductionEntity::class,
+        BatchEntity::class,
+        ReceiptJobEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -30,6 +37,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun brokerDao(): BrokerDao
     abstract fun receiptDao(): ReceiptDao
     abstract fun reportDao(): ReportDao
+    abstract fun batchDao(): BatchDao
+    abstract fun receiptJobDao(): ReceiptJobDao
 
     companion object {
         @Volatile private var INSTANCE: AppDatabase? = null
@@ -40,7 +49,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "farmai_database"
-                ).fallbackToDestructiveMigration()
+                ).addMigrations(*DatabaseMigrations.ALL)
                     .build()
                 INSTANCE = instance
                 instance

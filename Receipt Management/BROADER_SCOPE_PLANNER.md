@@ -1230,7 +1230,39 @@ Update this section after every successful iteration.
 - Build passed successfully.
 
 **Next iteration:**
-- Phase 1 continued — add explicit Room migrations and begin OCR/image capture foundation.
+- Phase 2 — Camera/gallery capture foundation and image storage.
+
+### Iteration 2 — Phase 1 Database Migration and WorkManager Foundation
+
+**Date:** 2026-06-14  
+**Status:** Completed  
+**Scope:** Added Room migration infrastructure, database version 2, batch/job schema foundation, DAOs, and WorkManager dependency.  
+**Summary:**
+- Added explicit Room migration `1 -> 2`.
+- Removed destructive migration fallback from `AppDatabase`.
+- Added `batches` table for future bulk receipt processing.
+- Added `receipt_jobs` table for future crop/OCR/parse/validation queue jobs.
+- Added `BatchEntity` and `ReceiptJobEntity`.
+- Added `BatchDao` and `ReceiptJobDao`.
+- Registered new entities in `AppDatabase`.
+- Added WorkManager dependency to `core:data` for future background crop, OCR, parsing, training, and sync jobs.
+
+**Files touched:**
+- `core/data/src/main/java/com/farmai/core/data/local/AppDatabase.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/migration/DatabaseMigrations.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/entity/BatchEntity.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/entity/ReceiptJobEntity.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/dao/BatchDao.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/dao/ReceiptJobDao.kt`
+- `core/data/build.gradle.kts`
+- `gradle/libs.versions.toml`
+
+**Verification performed:**
+- `.\gradlew :app:assembleDebug`
+- Build passed successfully.
+
+**Next iteration:**
+- Phase 2 — Camera/gallery capture foundation and image storage.
 
 ---
 
