@@ -6,6 +6,8 @@
 
 **Instruction for AI Models:** *When working on the web platform, read this document thoroughly to understand the ENTIRE system architecture, the purpose of each component, the data flows, and the strict rules for development.*
 
+**Android FarmAI note:** Android-specific schema and progress updates are maintained in `App AI Context.md` and `BROADER_SCOPE_PLANNER.md`; this historical web-platform document should not be treated as the Android source of truth.
+
 ## 1. Description and Purpose
 VoucherOCR is a comprehensive, end-to-end optical character recognition (OCR) and Machine Learning-powered data extraction application. Its primary goal is to process highly irregular supplier receipts and invoices (such as those from local Indian markets) and extract structured financial data (Dates, Totals, Deductions, Supplier Names). 
 

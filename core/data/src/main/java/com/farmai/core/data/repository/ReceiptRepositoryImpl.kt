@@ -3,14 +3,18 @@ package com.farmai.core.data.repository
 import androidx.room.withTransaction
 import com.farmai.core.data.local.AppDatabase
 import com.farmai.core.data.local.dao.ReceiptDao
+import com.farmai.core.data.local.dao.ValidationSnapshotDao
 import com.farmai.core.data.local.entity.DeductionEntity
 import com.farmai.core.data.local.entity.ReceiptEntity
 import com.farmai.core.data.local.entity.ReceiptLineItemEntity
+import com.farmai.core.data.local.entity.ValidationSnapshotEntity
 import com.farmai.core.domain.model.Deduction
 import com.farmai.core.domain.model.ParsedReceiptData
 import com.farmai.core.domain.model.Receipt
 import com.farmai.core.domain.model.ReceiptLineItem
 import com.farmai.core.domain.model.ReceiptStatus
+import com.farmai.core.domain.model.ValidationSnapshot
+import com.farmai.core.domain.model.ValidationStatus
 import com.farmai.core.domain.parser.ReceiptOcrParser
 import com.farmai.core.domain.repository.ReceiptParserRepository
 import com.farmai.core.domain.repository.ReceiptRepository
@@ -25,6 +29,7 @@ class ReceiptRepositoryImpl @Inject constructor(
     private val database: AppDatabase
 ) : ReceiptRepository {
     private val receiptDao: ReceiptDao = database.receiptDao()
+    private val validationSnapshotDao: ValidationSnapshotDao = database.validationSnapshotDao()
 
     override suspend fun getAllReceipts(): List<Receipt> {
         return receiptDao.getAllReceipts().first().map { it.toDomain() }
@@ -87,6 +92,10 @@ class ReceiptRepositoryImpl @Inject constructor(
         receiptDao.updateReceiptStatus(id, status.name, System.currentTimeMillis())
     }
 
+    override suspend fun updateReceiptValidationStatus(id: String, status: ValidationStatus) {
+        receiptDao.updateReceiptValidationStatus(id, status.name, System.currentTimeMillis())
+    }
+
     override suspend fun deleteReceipt(id: String) {
         database.withTransaction {
             receiptDao.deleteLineItemsByReceiptId(id)
@@ -101,6 +110,14 @@ class ReceiptRepositoryImpl @Inject constructor(
 
     override suspend fun getDeductions(receiptId: String): List<Deduction> {
         return receiptDao.getDeductions(receiptId).first().map { it.toDomain() }
+    }
+
+    override suspend fun getValidationSnapshots(receiptId: String): List<ValidationSnapshot> {
+        return validationSnapshotDao.getSnapshotsByReceiptId(receiptId).first().map { it.toDomain() }
+    }
+
+    override suspend fun saveValidationSnapshot(snapshot: ValidationSnapshot) {
+        validationSnapshotDao.insertSnapshot(ValidationSnapshotEntity.fromDomain(snapshot))
     }
 
     override suspend fun searchReceipts(query: String): List<Receipt> {

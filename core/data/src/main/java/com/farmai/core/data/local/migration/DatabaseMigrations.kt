@@ -57,5 +57,29 @@ object DatabaseMigrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2)
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE receipts ADD COLUMN validationStatus TEXT NOT NULL DEFAULT 'PENDING'")
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_receipts_validationStatus ON receipts(validationStatus)")
+            database.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS validation_snapshots (
+                    id TEXT NOT NULL,
+                    receiptId TEXT NOT NULL,
+                    originalJson TEXT NOT NULL,
+                    correctedJson TEXT NOT NULL,
+                    createdAt INTEGER NOT NULL,
+                    createdBy TEXT NOT NULL DEFAULT 'local-user',
+                    source TEXT NOT NULL DEFAULT 'manual-validation',
+                    PRIMARY KEY(id),
+                    FOREIGN KEY(receiptId) REFERENCES receipts(id) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_validation_snapshots_receiptId ON validation_snapshots(receiptId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_validation_snapshots_createdAt ON validation_snapshots(createdAt)")
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
 }

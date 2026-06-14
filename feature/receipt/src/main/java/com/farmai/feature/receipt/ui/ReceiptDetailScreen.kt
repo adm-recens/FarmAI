@@ -26,6 +26,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
@@ -80,6 +81,9 @@ fun ReceiptDetailScreen(
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             actions = {
+                IconButton(onClick = { navController.navigate("receipt/validate/${receiptId}") }) {
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.validate_receipt))
+                }
                 IconButton(onClick = { /* TODO: Export PDF */ }) {
                     Icon(Icons.Default.PictureAsPdf, contentDescription = stringResource(R.string.export_pdf))
                 }

@@ -5,6 +5,8 @@ import com.farmai.core.domain.model.ParsedReceiptData
 import com.farmai.core.domain.model.Receipt
 import com.farmai.core.domain.model.ReceiptLineItem
 import com.farmai.core.domain.model.ReceiptStatus
+import com.farmai.core.domain.model.ValidationSnapshot
+import com.farmai.core.domain.model.ValidationStatus
 import com.farmai.core.domain.repository.ReceiptParserRepository
 import com.farmai.core.domain.repository.ReceiptRepository
 import com.farmai.core.domain.usecase.FlowUseCase
@@ -94,6 +96,14 @@ class UpdateReceiptStatusUseCase @Inject constructor(
     }
 }
 
+class UpdateReceiptValidationStatusUseCase @Inject constructor(
+    private val repository: ReceiptRepository
+) : UseCase<UpdateValidationStatusParams, Unit> {
+    override suspend operator fun invoke(params: UpdateValidationStatusParams): Unit {
+        repository.updateReceiptValidationStatus(params.id, params.status)
+    }
+}
+
 class DeleteReceiptUseCase @Inject constructor(
     private val repository: ReceiptRepository
 ) : UseCase<String, Unit> {
@@ -115,6 +125,22 @@ class GetDeductionsUseCase @Inject constructor(
 ) : UseCase<String, List<Deduction>> {
     override suspend operator fun invoke(receiptId: String): List<Deduction> {
         return repository.getDeductions(receiptId)
+    }
+}
+
+class GetValidationSnapshotsUseCase @Inject constructor(
+    private val repository: ReceiptRepository
+) : UseCase<String, List<ValidationSnapshot>> {
+    override suspend operator fun invoke(receiptId: String): List<ValidationSnapshot> {
+        return repository.getValidationSnapshots(receiptId)
+    }
+}
+
+class SaveValidationSnapshotUseCase @Inject constructor(
+    private val repository: ReceiptRepository
+) : UseCase<ValidationSnapshot, Unit> {
+    override suspend operator fun invoke(params: ValidationSnapshot): Unit {
+        repository.saveValidationSnapshot(params)
     }
 }
 
@@ -156,4 +182,9 @@ data class ReceiptWithDetailsParams(
 data class UpdateStatusParams(
     val id: String,
     val status: ReceiptStatus
+)
+
+data class UpdateValidationStatusParams(
+    val id: String,
+    val status: ValidationStatus
 )

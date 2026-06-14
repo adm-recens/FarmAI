@@ -6,6 +6,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.farmai.core.domain.model.Receipt
 import com.farmai.core.domain.model.ReceiptStatus
+import com.farmai.core.domain.model.ValidationStatus
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -32,6 +33,7 @@ data class ReceiptEntity(
     val imagePathsJson: String = "[]",
     val ocrRawText: String? = null,
     val status: String = ReceiptStatus.DRAFT.name,
+    val validationStatus: String = ValidationStatus.PENDING.name,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
@@ -44,6 +46,7 @@ data class ReceiptEntity(
         imagePaths = Json.decodeFromString(imagePathsJson),
         ocrRawText = ocrRawText,
         status = ReceiptStatus.valueOf(status),
+        validationStatus = ValidationStatus.valueOf(validationStatus),
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -60,6 +63,7 @@ data class ReceiptEntity(
                 imagePathsJson = imagePathsJson,
                 ocrRawText = receipt.ocrRawText,
                 status = receipt.status.name,
+                validationStatus = receipt.validationStatus.name,
                 createdAt = receipt.createdAt,
                 updatedAt = System.currentTimeMillis()
             )

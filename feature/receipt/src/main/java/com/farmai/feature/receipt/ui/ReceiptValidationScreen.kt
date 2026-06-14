@@ -1,0 +1,502 @@
+package com.farmai.feature.receipt.ui
+
+import android.content.Context
+import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.farmai.core.domain.model.Deduction
+import com.farmai.core.domain.model.Receipt
+import com.farmai.core.domain.model.ReceiptLineItem
+import com.farmai.core.domain.model.ValidationStatus
+import com.farmai.feature.receipt.R
+import com.farmai.feature.receipt.viewmodel.ReceiptValidationViewModel
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import kotlinx.coroutines.launch
+import java.io.File
+import java.util.UUID
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReceiptValidationScreen(
+    navController: NavController,
+    receiptId: String,
+    viewModel: ReceiptValidationViewModel = hiltViewModel()
+) {
+    val receipt by viewModel.receipt.collectAsState()
+    val lineItems by viewModel.lineItems.collectAsState()
+    val deductions by viewModel.deductions.collectAsState()
+    val snapshots by viewModel.validationSnapshots.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+    val message by viewModel.message.collectAsState()
+    val context = LocalContext.current
+
+    var voucherNumber by remember { mutableStateOf("") }
+    var voucherDate by remember { mutableStateOf("") }
+    var farmerCode by remember { mutableStateOf("") }
+    var brokerName by remember { mutableStateOf("") }
+    var rawOcrText by remember { mutableStateOf("") }
+    var validationLineItems by remember { mutableStateOf<List<ReceiptLineItem>>(emptyList()) }
+    var validationDeductions by remember { mutableStateOf<List<Deduction>>(emptyList()) }
+    var ocrErrorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(receiptId) {
+        viewModel.loadReceipt(receiptId)
+    }
+
+    LaunchedEffect(receipt) {
+        receipt?.let {
+            voucherNumber = it.voucherNumber
+            voucherDate = formatVoucherDate(it.voucherDate)
+            farmerCode = it.farmerId
+            brokerName = it.brokerId
+            rawOcrText = it.ocrRawText.orEmpty()
+        }
+    }
+
+    LaunchedEffect(lineItems) {
+        validationLineItems = lineItems
+    }
+
+    LaunchedEffect(deductions) {
+        validationDeductions = deductions
+    }
+
+    fun buildReceipt(currentReceipt: Receipt): Receipt {
+        return currentReceipt.copy(
+            farmerId = farmerCode,
+            brokerId = brokerName,
+            voucherNumber = voucherNumber,
+            voucherDate = parseVoucherDate(voucherDate) ?: currentReceipt.voucherDate,
+            ocrRawText = rawOcrText
+        )
+    }
+
+    fun saveValidation(status: ValidationStatus) {
+        receipt?.let { currentReceipt ->
+            val updatedReceipt = buildReceipt(currentReceipt)
+            val correctedJson = viewModel.correctedJson(updatedReceipt, validationLineItems, validationDeductions)
+            viewModel.saveValidatedReceipt(updatedReceipt, validationLineItems, validationDeductions, correctedJson, status)
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Top
+    ) {
+        TopAppBar(
+            title = { Text(stringResource(R.string.validate_receipt)) },
+            navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        )
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 80.dp)
+        ) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            stringResource(R.string.validation_image_and_ocr),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        receipt?.imagePaths?.lastOrNull()?.let { imagePath ->
+                            AsyncImage(
+                                model = File(imagePath),
+                                contentDescription = stringResource(R.string.receipt_image_preview),
+                                modifier = Modifier.fillMaxWidth().height(240.dp).padding(top = 12.dp)
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = {
+                                        runOcrOnImage(
+                                            context = context,
+                                            imagePath = imagePath,
+                                            onSuccess = { text ->
+                                                rawOcrText = text
+                                                ocrErrorMessage = null
+                                                viewModel.parseReceiptText(text)
+                                            },
+                                            onError = { errorMessage -> ocrErrorMessage = errorMessage }
+                                        )
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    enabled = !isLoading
+                                ) {
+                                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                                }
+                                Button(
+                                    onClick = { viewModel.parseReceiptText(rawOcrText) },
+                                    modifier = Modifier.weight(1f),
+                                    enabled = !isLoading
+                                ) {
+                                    Text(stringResource(R.string.reparse_ocr_text))
+                                }
+                            }
+                        }
+                        OutlinedTextField(
+                            value = rawOcrText,
+                            onValueChange = { rawOcrText = it },
+                            label = { Text(stringResource(R.string.ocr_text)) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                            minLines = 5
+                        )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            stringResource(R.string.validation_fields),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        OutlinedTextField(
+                            value = voucherNumber,
+                            onValueChange = { voucherNumber = it },
+                            label = { Text(stringResource(R.string.voucher_number)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = voucherDate,
+                            onValueChange = { voucherDate = it },
+                            label = { Text(stringResource(R.string.voucher_date)) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = farmerCode,
+                            onValueChange = { farmerCode = it.uppercase() },
+                            label = { Text(stringResource(R.string.farmer_code)) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            singleLine = true
+                        )
+                        OutlinedTextField(
+                            value = brokerName,
+                            onValueChange = { brokerName = it },
+                            label = { Text(stringResource(R.string.broker_name)) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            singleLine = true
+                        )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            stringResource(R.string.line_items),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
+            itemsIndexed(validationLineItems) { index, item ->
+                ValidationLineItemRow(
+                    item = item,
+                    onRemove = {
+                        validationLineItems = validationLineItems.toMutableList().also { it.removeAt(index) }
+                    },
+                    onUpdate = { quantity, price ->
+                        validationLineItems = validationLineItems.toMutableList().also { mutable ->
+                            mutable[index] = item.copy(quantity = quantity, pricePerUnit = price, amount = quantity * price)
+                        }
+                    }
+                )
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            stringResource(R.string.deductions),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
+            itemsIndexed(validationDeductions) { index, deduction ->
+                ValidationDeductionRow(
+                    deduction = deduction,
+                    onRemove = {
+                        validationDeductions = validationDeductions.toMutableList().also { it.removeAt(index) }
+                    },
+                    onUpdate = { amount ->
+                        validationDeductions = validationDeductions.toMutableList().also { mutable ->
+                            mutable[index] = deduction.copy(amount = amount)
+                        }
+                    }
+                )
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            stringResource(R.string.validation_snapshots),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            if (snapshots.isEmpty()) stringResource(R.string.no_validation_snapshots) else stringResource(R.string.validation_snapshot_count, snapshots.size),
+                            modifier = Modifier.padding(top = 8.dp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { saveValidation(ValidationStatus.NEEDS_REVIEW) },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        enabled = !isLoading,
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        )
+                    ) {
+                        Text(stringResource(R.string.save_validation_draft))
+                    }
+                    Button(
+                        onClick = { saveValidation(ValidationStatus.VALIDATED) },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        enabled = !isLoading,
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Text(stringResource(R.string.save_validation_confirmed))
+                    }
+                }
+            }
+        }
+
+        ocrErrorMessage?.let { errorMessage ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .background(Color.Red.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                    .padding(16.dp)
+            ) {
+                Text(errorMessage, color = Color.Red, fontWeight = FontWeight.Medium)
+            }
+        }
+
+        message?.let { validationMessage ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(8.dp))
+                    .padding(16.dp)
+            ) {
+                Text(validationMessage, color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.Medium)
+            }
+        }
+
+        error?.let { currentError ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .background(Color.Red.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                    .padding(16.dp)
+            ) {
+                Text(currentError, color = Color.Red, fontWeight = FontWeight.Medium)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ValidationLineItemRow(
+    item: ReceiptLineItem,
+    onRemove: () -> Unit,
+    onUpdate: (Double, Double) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            value = item.quantity.toString(),
+            onValueChange = { onUpdate(it.toDoubleOrNull() ?: 0.0, item.pricePerUnit) },
+            label = { Text(stringResource(R.string.qty)) },
+            modifier = Modifier.weight(1f),
+            singleLine = true
+        )
+        OutlinedTextField(
+            value = item.pricePerUnit.toString(),
+            onValueChange = { onUpdate(item.quantity, it.toDoubleOrNull() ?: 0.0) },
+            label = { Text(stringResource(R.string.price)) },
+            modifier = Modifier.weight(1f),
+            singleLine = true
+        )
+        OutlinedTextField(
+            value = item.amount.toString(),
+            onValueChange = {},
+            label = { Text(stringResource(R.string.amount)) },
+            modifier = Modifier.weight(1f),
+            singleLine = true,
+            enabled = false
+        )
+        IconButton(onClick = onRemove) {
+            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove))
+        }
+    }
+}
+
+@Composable
+private fun ValidationDeductionRow(
+    deduction: Deduction,
+    onRemove: () -> Unit,
+    onUpdate: (Double) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(deduction.type.name, modifier = Modifier.weight(1f), fontSize = 14.sp)
+        OutlinedTextField(
+            value = deduction.amount.toString(),
+            onValueChange = { onUpdate(it.toDoubleOrNull() ?: 0.0) },
+            label = { Text(stringResource(R.string.amount)) },
+            modifier = Modifier.weight(2f),
+            singleLine = true
+        )
+        IconButton(onClick = onRemove) {
+            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove))
+        }
+    }
+}
+
+private fun runOcrOnImage(
+    context: Context,
+    imagePath: String,
+    onSuccess: (String) -> Unit,
+    onError: (String) -> Unit
+) {
+    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    val image = InputImage.fromFilePath(context, Uri.parse(imagePath))
+
+    recognizer.process(image)
+        .addOnSuccessListener { visionText ->
+            onSuccess(visionText.text)
+        }
+        .addOnFailureListener { error ->
+            onError(error.message ?: "OCR failed")
+        }
+        .addOnCompleteListener {
+            recognizer.close()
+        }
+}
+
+private fun parseVoucherDate(value: String): Long? {
+    if (value.isBlank()) return null
+    val trimmed = value.trim()
+    val formats = listOf("dd/MM/yyyy", "dd-MM-yyyy", "ddMMyyyy", "yyyy-MM-dd")
+    return formats.firstNotNullOfOrNull { format ->
+        runCatching { java.text.SimpleDateFormat(format, java.util.Locale.getDefault()).parse(trimmed)?.time }.getOrNull()
+    }
+}
+
+private fun formatVoucherDate(value: Long?): String {
+    if (value == null) return ""
+    return java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(java.util.Date(value))
+}

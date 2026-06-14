@@ -5,6 +5,8 @@ import com.farmai.core.domain.model.ParsedReceiptData
 import com.farmai.core.domain.model.Receipt
 import com.farmai.core.domain.model.ReceiptLineItem
 import com.farmai.core.domain.model.ReceiptStatus
+import com.farmai.core.domain.model.ValidationSnapshot
+import com.farmai.core.domain.model.ValidationStatus
 import kotlinx.coroutines.flow.Flow
 
 interface ReceiptRepository {
@@ -20,9 +22,12 @@ interface ReceiptRepository {
     suspend fun saveReceipt(receipt: Receipt)
     suspend fun saveReceiptWithDetails(receipt: Receipt, lineItems: List<ReceiptLineItem>, deductions: List<Deduction>)
     suspend fun updateReceiptStatus(id: String, status: ReceiptStatus)
+    suspend fun updateReceiptValidationStatus(id: String, status: ValidationStatus)
     suspend fun deleteReceipt(id: String)
     suspend fun getLineItems(receiptId: String): List<ReceiptLineItem>
     suspend fun getDeductions(receiptId: String): List<Deduction>
+    suspend fun getValidationSnapshots(receiptId: String): List<ValidationSnapshot>
+    suspend fun saveValidationSnapshot(snapshot: ValidationSnapshot)
     suspend fun searchReceipts(query: String): List<Receipt>
 }
 

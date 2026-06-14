@@ -36,6 +36,15 @@
     <string name="parsed_line_items">Line items: %1$d</string>
     <string name="parsed_deductions">Deductions: %1$d</string>
     <string name="apply_parsed_data">Apply Parsed Data</string>
+    <string name="validate_receipt">Validate Receipt</string>
+    <string name="validation_image_and_ocr">Image and OCR</string>
+    <string name="reparse_ocr_text">Re-parse OCR Text</string>
+    <string name="validation_fields">Validation Fields</string>
+    <string name="validation_snapshots">Validation Snapshots</string>
+    <string name="no_validation_snapshots">No validation snapshots saved yet.</string>
+    <string name="validation_snapshot_count">%1$d saved snapshot(s)</string>
+    <string name="save_validation_draft">Save Draft</string>
+    <string name="save_validation_confirmed">Save Confirmed</string>
     <string name="save_receipt">Save Receipt</string>
     <string name="qty">Qty</string>
     <string name="price">Price</string>

@@ -12,6 +12,7 @@ data class Receipt(
     val imagePaths: List<String> = emptyList(),
     val ocrRawText: String? = null,
     val status: ReceiptStatus = ReceiptStatus.DRAFT,
+    val validationStatus: ValidationStatus = ValidationStatus.PENDING,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {

@@ -24,6 +24,8 @@ Current implemented areas:
 - Saved image OCR text extraction
 - Structured parser output with confidence scores
 - OCR-to-form mapping for receipt entry
+- Validation screen with original/corrected parser snapshots
+- Validation status tracking
 - Draft/confirmed receipt status
 - Local Room database
 
@@ -46,7 +48,6 @@ Current known gaps:
 - Camera capture is not implemented.
 - `parseReceiptImage()` currently returns empty data; image OCR is currently triggered from the receipt entry UI.
 - OCR orchestration should move into a dedicated OCR/background module.
-- Receipt date parsing is improved, but final validation snapshots are not stored.
 - PDF/share/export are placeholders.
 - Reports exist at repository/query level but not as UI screens.
 - Sync exists as a status value but no sync implementation exists.
@@ -709,6 +710,8 @@ Fields:
 
 ### 6.3 `validation_snapshots`
 
+Status: Implemented in database version 3.
+
 Fields:
 
 - `id`
@@ -1346,6 +1349,47 @@ Update this section after every successful iteration.
 
 **Next iteration:**
 - Phase 6 — Validation Screen.
+
+### Iteration 6 — Phase 6 Validation Screen and Validation Snapshots
+
+**Date:** 2026-06-14
+**Status:** Completed
+**Scope:** Added validation persistence, validation status, and a receipt validation screen that saves original and corrected parser snapshots.
+**Summary:**
+- Added Room database version 3 with `validation_snapshots` and `receipts.validationStatus`.
+- Added explicit migration `2 -> 3`.
+- Added `ValidationSnapshot`, `ValidationStatus`, entity, DAO, repository methods, and use cases.
+- Added `ReceiptValidationScreen` for image/OCR review, editable parsed fields, line items, deductions, re-parse/re-OCR actions, and draft/confirmed validation saves.
+- Added receipt detail navigation to the validation screen.
+- Stored original parser JSON from OCR text and corrected parser JSON from the validation form.
+
+**Files touched:**
+- `core/data/src/main/java/com/farmai/core/data/local/AppDatabase.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/migration/DatabaseMigrations.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/dao/ReceiptDao.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/dao/ValidationSnapshotDao.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/entity/ReceiptEntity.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/entity/ValidationSnapshotEntity.kt`
+- `core/data/src/main/java/com/farmai/core/data/repository/ReceiptRepositoryImpl.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/model/ParsedReceiptData.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/model/Receipt.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/model/ValidationSnapshot.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/repository/ReceiptRepository.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/usecase/receipt/ReceiptUseCases.kt`
+- `app/src/main/java/com/farmai/app/navigation/FarmAINavHost.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReceiptDetailScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReceiptValidationScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/ReceiptValidationViewModel.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+- `feature/receipt/build.gradle.kts`
+
+**Verification performed:**
+- `.\gradlew :app:assembleDebug`
+- `.\gradlew :core:domain:testDebugUnitTest`
+- Both commands passed successfully.
+
+**Next iteration:**
+- Phase 7 — Batch and Queue System.
 
 ---
 

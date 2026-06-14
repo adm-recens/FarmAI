@@ -1,5 +1,8 @@
 package com.farmai.core.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ParsedReceiptData(
     val brokerName: String? = null,
     val brokerAddress: String? = null,
@@ -18,6 +21,7 @@ data class ParsedReceiptData(
     val fieldConfidence: Map<String, Double> = emptyMap()
 )
 
+@Serializable
 data class ParsedLineItem(
     val quantity: Double,
     val pricePerUnit: Double,
@@ -26,6 +30,7 @@ data class ParsedLineItem(
     val confidence: Double = 1.0
 )
 
+@Serializable
 data class ParsedDeduction(
     val type: DeductionType,
     val amount: Double,

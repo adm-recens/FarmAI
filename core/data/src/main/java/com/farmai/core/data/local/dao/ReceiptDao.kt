@@ -49,6 +49,9 @@ interface ReceiptDao {
     @Query("UPDATE receipts SET status = :status, updatedAt = :updatedAt WHERE id = :id")
     suspend fun updateReceiptStatus(id: String, status: String, updatedAt: Long)
 
+    @Query("UPDATE receipts SET validationStatus = :status, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun updateReceiptValidationStatus(id: String, status: String, updatedAt: Long)
+
     @Delete
     suspend fun deleteReceipt(receipt: ReceiptEntity)
 
