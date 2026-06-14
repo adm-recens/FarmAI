@@ -214,6 +214,7 @@ Current limitations:
 - Receipt edit route is referenced from the list screen but is not currently registered in navigation.
 - Image OCR is implemented for saved receipt images, but camera capture is not implemented.
 - OCR text parsing now produces structured data with confidence scores and can be applied to the receipt form, but OCR orchestration is still in the UI layer.
+- Batch queue list/detail and receipt job status updates are implemented, but background WorkManager crop/OCR/parse workers are not implemented yet.
 - No crop UI.
 - No smart crop.
 - No batch queue, ML feedback loop, reports UI, export UI, supplier management, or sync implementation.
@@ -418,7 +419,7 @@ Current gaps:
 - No crop UI.
 - No smart crop.
 - No OCR confidence.
-- No batch queue, ML feedback loop, reports UI, export UI, supplier management, or sync implementation.
+- No smart crop, ML feedback loop, reports UI, export UI, supplier management, or sync implementation.
 
 ---
 
@@ -894,6 +895,44 @@ Update this section after every successful iteration.
 
 **Next iteration:**
 - Phase 7 — Batch and Queue System.
+
+### Iteration 7 — Phase 7 Batch and Queue System Foundation
+
+**Date:** 2026-06-14
+**Status:** Completed
+**Scope:** Added batch and queue repository/use-case layer, batch list/detail screens, receipt job queue actions, and navigation from home.
+**Summary:**
+- Added domain `Batch`, `BatchStatus`, `ReceiptJob`, and `ReceiptJobStatus` models.
+- Added `BatchRepository` with batch/job observation, batch creation, receipt job creation, status updates, failure marking, and delete actions.
+- Added `BatchRepositoryImpl` and Hilt binding.
+- Added batch use cases for observing, creating, adding receipt jobs, updating job status, marking failures, and deleting.
+- Added `BatchListScreen` and `BatchDetailScreen` for creating batches, adding receipt images to a queue, and manually advancing job statuses.
+- Added home navigation to batch management.
+- Kept WorkManager worker implementation for a future phase.
+
+**Files touched:**
+- `core/domain/src/main/java/com/farmai/core/domain/model/Batch.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/model/ReceiptJob.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/repository/BatchRepository.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/usecase/batch/BatchUseCases.kt`
+- `core/data/src/main/java/com/farmai/core/data/repository/BatchRepositoryImpl.kt`
+- `core/data/src/main/java/com/farmai/core/data/di/DatabaseModule.kt`
+- `app/src/main/java/com/farmai/app/navigation/HomeScreen.kt`
+- `app/src/main/java/com/farmai/app/navigation/FarmAINavHost.kt`
+- `app/src/main/res/values/strings.xml`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/BatchListViewModel.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/BatchDetailViewModel.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/BatchListScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/BatchDetailScreen.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+
+**Verification performed:**
+- `.\gradlew :app:assembleDebug`
+- `.\gradlew :core:domain:testDebugUnitTest`
+- Both commands passed successfully.
+
+**Next iteration:**
+- Phase 8 — Smart Crop.
 
 ---
 

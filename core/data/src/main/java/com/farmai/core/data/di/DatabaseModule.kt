@@ -2,11 +2,13 @@ package com.farmai.core.data.di
 
 import android.content.Context
 import com.farmai.core.data.local.AppDatabase
+import com.farmai.core.data.repository.BatchRepositoryImpl
 import com.farmai.core.data.repository.BrokerRepositoryImpl
 import com.farmai.core.data.repository.FarmerRepositoryImpl
 import com.farmai.core.data.repository.ReceiptParserRepositoryImpl
 import com.farmai.core.data.repository.ReceiptRepositoryImpl
 import com.farmai.core.data.repository.ReportRepositoryImpl
+import com.farmai.core.domain.repository.BatchRepository
 import com.farmai.core.domain.repository.BrokerRepository
 import com.farmai.core.domain.repository.FarmerRepository
 import com.farmai.core.domain.repository.ReceiptParserRepository
@@ -30,6 +32,10 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideFarmerRepository(impl: FarmerRepositoryImpl): FarmerRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideBatchRepository(impl: BatchRepositoryImpl): BatchRepository = impl
 
     @Provides
     @Singleton

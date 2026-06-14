@@ -8,6 +8,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.farmai.feature.broker.ui.BrokerDetailScreen
 import com.farmai.feature.broker.ui.BrokerListScreen
+import com.farmai.feature.receipt.ui.BatchDetailScreen
+import com.farmai.feature.receipt.ui.BatchListScreen
 import com.farmai.feature.farmer.ui.FarmerDetailScreen
 import com.farmai.feature.farmer.ui.FarmerListScreen
 import com.farmai.feature.receipt.ui.ReceiptDetailScreen
@@ -27,7 +29,8 @@ fun FarmAINavHost(
             HomeScreen(
                 onNavigateToFarmers = { navController.navigate("farmers") },
                 onNavigateToBrokers = { navController.navigate("brokers") },
-                onNavigateToReceipts = { navController.navigate("receipts") }
+                onNavigateToReceipts = { navController.navigate("receipts") },
+                onNavigateToBatches = { navController.navigate("batches") }
             )
         }
 
@@ -61,6 +64,13 @@ fun FarmAINavHost(
 
         composable("receipts") {
             ReceiptListScreen(navController = navController)
+        }
+        composable("batches") {
+            BatchListScreen(navController = navController)
+        }
+        composable("batch/{batchId}") { backStackEntry ->
+            val batchId = backStackEntry.arguments?.getString("batchId") ?: return@composable
+            BatchDetailScreen(navController = navController, batchId = batchId)
         }
         composable("receipt/add") {
             ReceiptEntryScreen(navController = navController)

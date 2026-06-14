@@ -45,6 +45,12 @@
     <string name="validation_snapshot_count">%1$d saved snapshot(s)</string>
     <string name="save_validation_draft">Save Draft</string>
     <string name="save_validation_confirmed">Save Confirmed</string>
+    <string name="batches">Batches</string>
+    <string name="batch_name">Batch Name</string>
+    <string name="batch_notes">Notes</string>
+    <string name="no_batches_found">No batches found</string>
+    <string name="batch_detail">Batch Detail</string>
+    <string name="batch_summary">Batch Summary</string>
     <string name="save_receipt">Save Receipt</string>
     <string name="qty">Qty</string>
     <string name="price">Price</string>

@@ -21,7 +21,8 @@ import com.farmai.app.R
 fun HomeScreen(
     onNavigateToFarmers: () -> Unit,
     onNavigateToBrokers: () -> Unit,
-    onNavigateToReceipts: () -> Unit
+    onNavigateToReceipts: () -> Unit,
+    onNavigateToBatches: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -68,6 +69,15 @@ fun HomeScreen(
                 .padding(vertical = 8.dp)
         ) {
             Text(stringResource(R.string.manage_receipts))
+        }
+
+        Button(
+            onClick = onNavigateToBatches,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Text(stringResource(R.string.manage_batches))
         }
     }
 }
