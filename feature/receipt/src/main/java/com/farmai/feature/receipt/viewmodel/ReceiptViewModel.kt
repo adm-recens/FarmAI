@@ -163,7 +163,10 @@ class ReceiptDetailViewModel @Inject constructor(
 @HiltViewModel
 class ReceiptEntryViewModel @Inject constructor(
     private val saveReceiptWithDetailsUseCase: SaveReceiptWithDetailsUseCase,
-    private val parseReceiptTextUseCase: ParseReceiptTextUseCase
+    private val parseReceiptTextUseCase: ParseReceiptTextUseCase,
+    private val getReceiptByIdUseCase: GetReceiptByIdUseCase,
+    private val getLineItemsUseCase: GetLineItemsUseCase,
+    private val getDeductionsUseCase: GetDeductionsUseCase
 ) : ViewModel() {
 
     private val _receipt = MutableStateFlow<Receipt?>(null)
@@ -180,6 +183,27 @@ class ReceiptEntryViewModel @Inject constructor(
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
+
+    fun loadReceipt(receiptId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val receiptData = getReceiptByIdUseCase(receiptId)
+                _receipt.value = receiptData
+                if (receiptData != null) {
+                    _lineItems.value = getLineItemsUseCase(receiptId)
+                    _deductions.value = getDeductionsUseCase(receiptId)
+                } else {
+                    _lineItems.value = emptyList()
+                    _deductions.value = emptyList()
+                }
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
     fun saveReceipt(receipt: Receipt, lineItems: List<ReceiptLineItem>, deductions: List<Deduction>) {
         viewModelScope.launch {
@@ -199,8 +223,7 @@ class ReceiptEntryViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val parsed = parseReceiptTextUseCase(rawText)
-                // TODO: Convert parsed data to domain models
+                parseReceiptTextUseCase(rawText)
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = "Failed to parse receipt: ${e.message}"

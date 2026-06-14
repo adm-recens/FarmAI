@@ -26,10 +26,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +74,10 @@ fun FarmerDetailScreen(
     var showSnackbar by remember { mutableStateOf(false) }
     var snackbarMessage by remember { mutableStateOf("") }
 
+    LaunchedEffect(farmerId) {
+        viewModel.loadFarmer(farmerId)
+    }
+
     var name by remember { mutableStateOf(farmer?.name ?: "") }
     var code by remember { mutableStateOf(farmer?.code ?: "") }
     var phone by remember { mutableStateOf(farmer?.phone ?: "") }
@@ -95,7 +100,7 @@ fun FarmerDetailScreen(
             title = { Text(if (isEditing) stringResource(R.string.edit_farmer) else stringResource(R.string.add_farmer)) },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer),

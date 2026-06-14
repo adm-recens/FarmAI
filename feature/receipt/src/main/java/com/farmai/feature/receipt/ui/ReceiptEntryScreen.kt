@@ -26,11 +26,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,29 +59,48 @@ import com.farmai.feature.receipt.viewmodel.ReceiptEntryViewModel
 @Composable
 fun ReceiptEntryScreen(
     navController: NavController,
+    receiptId: String? = null,
     viewModel: ReceiptEntryViewModel = hiltViewModel()
 ) {
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val receipt by viewModel.receipt.collectAsState()
     val lineItems by viewModel.lineItems.collectAsState()
     val deductions by viewModel.deductions.collectAsState()
     val currentError = error
+    val isEditing = receiptId != null
 
-    var voucherNumber by remember { mutableStateOf("") }
-    var voucherDate by remember { mutableStateOf("") }
-    var farmerCode by remember { mutableStateOf("") }
-    var brokerName by remember { mutableStateOf("") }
-    var rawOcrText by remember { mutableStateOf("") }
+    var voucherNumber by remember { mutableStateOf(receipt?.voucherNumber ?: "") }
+    var voucherDate by remember { mutableStateOf(formatVoucherDate(receipt?.voucherDate)) }
+    var farmerCode by remember { mutableStateOf(receipt?.farmerId ?: "") }
+    var brokerName by remember { mutableStateOf(receipt?.brokerId ?: "") }
+    var rawOcrText by remember { mutableStateOf(receipt?.ocrRawText ?: "") }
+
+    LaunchedEffect(receiptId) {
+        if (receiptId != null) {
+            viewModel.loadReceipt(receiptId)
+        }
+    }
+
+    LaunchedEffect(receipt) {
+        receipt?.let {
+            voucherNumber = it.voucherNumber
+            voucherDate = formatVoucherDate(it.voucherDate)
+            farmerCode = it.farmerId
+            brokerName = it.brokerId
+            rawOcrText = it.ocrRawText ?: ""
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Top
     ) {
         TopAppBar(
-            title = { Text(stringResource(R.string.add_receipt)) },
+            title = { Text(if (isEditing) stringResource(R.string.edit_receipt) else stringResource(R.string.add_receipt)) },
             navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
@@ -253,15 +273,19 @@ fun ReceiptEntryScreen(
             item {
                 Button(
                     onClick = {
-                        val receipt = Receipt(
-                            id = Receipt.generateId(),
+                        val parsedVoucherDate = parseVoucherDate(voucherDate) ?: System.currentTimeMillis()
+                        val updatedReceipt = Receipt(
+                            id = receipt?.id ?: Receipt.generateId(),
                             farmerId = farmerCode,
                             brokerId = brokerName,
                             voucherNumber = voucherNumber,
-                            voucherDate = System.currentTimeMillis(),
-                            status = ReceiptStatus.DRAFT
+                            voucherDate = parsedVoucherDate,
+                            imagePaths = receipt?.imagePaths ?: emptyList(),
+                            ocrRawText = rawOcrText.ifBlank { receipt?.ocrRawText },
+                            status = receipt?.status ?: ReceiptStatus.DRAFT,
+                            createdAt = receipt?.createdAt ?: System.currentTimeMillis()
                         )
-                        viewModel.saveReceipt(receipt, lineItems, deductions)
+                        viewModel.saveReceipt(updatedReceipt, lineItems, deductions)
                         navController.popBackStack()
                     },
                     modifier = Modifier.fillMaxWidth().height(48.dp),
@@ -295,6 +319,27 @@ fun ReceiptEntryScreen(
             }
         }
     }
+}
+
+private fun parseVoucherDate(value: String): Long? {
+    if (value.isBlank()) return null
+    val trimmed = value.trim()
+    val formats = listOf(
+        "dd/MM/yyyy",
+        "dd-MM-yyyy",
+        "ddMMyyyy",
+        "yyyy-MM-dd"
+    )
+    return formats.firstNotNullOfOrNull { format ->
+        runCatching {
+            java.text.SimpleDateFormat(format, java.util.Locale.getDefault()).parse(trimmed)?.time
+        }.getOrNull()
+    }
+}
+
+private fun formatVoucherDate(value: Long?): String {
+    if (value == null) return ""
+    return java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(java.util.Date(value))
 }
 
 @Composable

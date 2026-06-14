@@ -1,6 +1,7 @@
 <resources>
     <string name="receipts_title">Receipts</string>
     <string name="add_receipt">Add Receipt</string>
+    <string name="edit_receipt">Edit Receipt</string>
     <string name="search_receipts">Search receipts...</string>
     <string name="no_receipts_found">No receipts found</string>
     <string name="add_first_receipt">Tap + to add your first receipt</string>

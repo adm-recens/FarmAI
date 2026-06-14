@@ -36,6 +36,10 @@ fun FarmAINavHost(
         composable("farmer/add") {
             FarmerDetailScreen(navController = navController, farmerId = null)
         }
+        composable("farmer/{farmerId}") { backStackEntry ->
+            val farmerId = backStackEntry.arguments?.getString("farmerId") ?: return@composable
+            FarmerDetailScreen(navController = navController, farmerId = farmerId)
+        }
         composable("farmer/edit/{farmerId}") { backStackEntry ->
             FarmerDetailScreen(navController = navController, farmerId = backStackEntry.arguments?.getString("farmerId"))
         }
@@ -46,6 +50,10 @@ fun FarmAINavHost(
         composable("broker/add") {
             BrokerDetailScreen(navController = navController, brokerId = null)
         }
+        composable("broker/{brokerId}") { backStackEntry ->
+            val brokerId = backStackEntry.arguments?.getString("brokerId") ?: return@composable
+            BrokerDetailScreen(navController = navController, brokerId = brokerId)
+        }
         composable("broker/edit/{brokerId}") { backStackEntry ->
             BrokerDetailScreen(navController = navController, brokerId = backStackEntry.arguments?.getString("brokerId"))
         }
@@ -55,6 +63,10 @@ fun FarmAINavHost(
         }
         composable("receipt/add") {
             ReceiptEntryScreen(navController = navController)
+        }
+        composable("receipt/edit/{receiptId}") { backStackEntry ->
+            val receiptId = backStackEntry.arguments?.getString("receiptId") ?: return@composable
+            ReceiptEntryScreen(navController = navController, receiptId = receiptId)
         }
         composable("receipt/{receiptId}") { backStackEntry ->
             val receiptId = backStackEntry.arguments?.getString("receiptId") ?: return@composable

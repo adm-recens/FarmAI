@@ -689,6 +689,37 @@ Update this section after every successful iteration.
 **Next iteration:**
 - Phase 1 — Architecture cleanup, migration planning, and navigation gap fixes.
 
+### Iteration 1 — Navigation Gaps and Receipt Edit Support
+
+**Date:** 2026-06-14  
+**Status:** Completed  
+**Scope:** Fixed missing farmer/broker detail routes, added receipt edit route, and added basic receipt edit loading/saving support.  
+**Summary:**
+- Added `farmer/{farmerId}` route so farmer list detail navigation works.
+- Added `broker/{brokerId}` route so broker list detail navigation works.
+- Added `receipt/edit/{receiptId}` route so receipt list edit navigation works.
+- Farmer and broker detail screens now load existing records when opened by ID.
+- Receipt entry screen now supports loading existing receipt data for edit mode.
+- Receipt edit saves the existing receipt ID, current image paths, existing OCR text fallback, current status, and created timestamp.
+- Voucher date text is now parsed into epoch time when saving receipts.
+- Replaced deprecated default arrow-back icons with auto-mirrored icons.
+- Removed an unused parser result variable warning.
+
+**Files touched:**
+- `app/src/main/java/com/farmai/app/navigation/FarmAINavHost.kt`
+- `feature/farmer/src/main/java/com/farmai/feature/farmer/ui/FarmerDetailScreen.kt`
+- `feature/broker/src/main/java/com/farmai/feature/broker/ui/BrokerDetailScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReceiptEntryScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/ReceiptViewModel.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+
+**Verification performed:**
+- `.\gradlew :app:assembleDebug`
+- Build passed successfully.
+
+**Next iteration:**
+- Phase 1 continued — add explicit Room migrations and begin OCR/image capture foundation.
+
 ---
 
 ## 17. Instructions for Future AI Sessions
