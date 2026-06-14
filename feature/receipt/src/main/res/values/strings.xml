@@ -27,6 +27,15 @@
     <string name="run_image_ocr">Run OCR on Image</string>
     <string name="paste_ocr_text">Paste OCR Text</string>
     <string name="parse_text">Parse Text</string>
+    <string name="parsed_receipt_data">Parsed Receipt Data</string>
+    <string name="parsed_confidence">Parsed confidence: %1$d%%</string>
+    <string name="parsed_broker">Broker: %1$s</string>
+    <string name="parsed_voucher">Voucher: %1$s</string>
+    <string name="parsed_date">Date: %1$s</string>
+    <string name="parsed_farmer_code">Farmer code: %1$s</string>
+    <string name="parsed_line_items">Line items: %1$d</string>
+    <string name="parsed_deductions">Deductions: %1$d</string>
+    <string name="apply_parsed_data">Apply Parsed Data</string>
     <string name="save_receipt">Save Receipt</string>
     <string name="qty">Qty</string>
     <string name="price">Price</string>

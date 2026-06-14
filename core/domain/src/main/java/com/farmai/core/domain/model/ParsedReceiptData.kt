@@ -9,17 +9,21 @@ data class ParsedReceiptData(
     val supplierCode: String? = null,
     val lineItems: List<ParsedLineItem> = emptyList(),
     val commissionPercent: Double? = null,
+    val commissionAmount: Double? = null,
     val damagesAmount: Double? = null,
     val unloadingAmount: Double? = null,
     val advanceAmount: Double? = null,
-    val otherDeductions: List<ParsedDeduction> = emptyList()
+    val otherDeductions: List<ParsedDeduction> = emptyList(),
+    val confidenceScore: Double = 0.0,
+    val fieldConfidence: Map<String, Double> = emptyMap()
 )
 
 data class ParsedLineItem(
     val quantity: Double,
     val pricePerUnit: Double,
     val amount: Double,
-    val grade: String? = null
+    val grade: String? = null,
+    val confidence: Double = 1.0
 )
 
 data class ParsedDeduction(
@@ -27,5 +31,6 @@ data class ParsedDeduction(
     val amount: Double,
     val description: String? = null,
     val isPercentage: Boolean = false,
-    val percentageValue: Double? = null
+    val percentageValue: Double? = null,
+    val confidence: Double = 1.0
 )

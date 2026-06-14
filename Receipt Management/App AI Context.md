@@ -97,6 +97,7 @@ Responsibilities:
 - Repository interfaces
 - Use cases
 - Business rules
+- Receipt parser and parsed-data mapper
 
 Key folders:
 
@@ -211,10 +212,11 @@ Current limitations:
 
 - Receipt entry stores `farmerId = farmerCode` and `brokerId = brokerName`. This should be improved later by selecting saved farmers and brokers by ID.
 - Receipt edit route is referenced from the list screen but is not currently registered in navigation.
-- Receipt date is saved as current time instead of parsed voucher date.
-- Pasted OCR text parsing does not auto-fill receipt form fields.
-- Image OCR is not implemented.
-- Camera capture is not implemented.
+- Image OCR is implemented for saved receipt images, but camera capture is not implemented.
+- OCR text parsing now produces structured data with confidence scores and can be applied to the receipt form, but there is no separate validation screen yet.
+- No crop UI.
+- No smart crop.
+- No original/corrected parser snapshot.
 
 ---
 
@@ -369,11 +371,19 @@ Current note:
 
 Current OCR behavior:
 
-- `parseReceiptImage(imagePath)` returns an empty `ParsedReceiptData()` placeholder.
-- `parseReceiptText(rawText)` parses pasted receipt text.
-- Parsed OCR data is not converted into receipt form fields.
+- `parseReceiptImage()` still returns an empty `ParsedReceiptData()` placeholder.
+- `parseReceiptText(rawText)` parses pasted OCR text and image OCR text into structured fields.
+- Parser output now includes confidence scores and field-level confidence.
+- Receipt entry can apply parsed OCR data to voucher, date, farmer code, broker, line items, and deductions.
+- Parsed OCR data is not yet stored as an immutable original/corrected validation snapshot.
 
 Current parser file:
+
+```text
+core/domain/src/main/java/com/farmai/core/domain/parser/ReceiptOcrParser.kt
+```
+
+Core:data delegates parsing to:
 
 ```text
 core/data/src/main/java/com/farmai/core/data/repository/ReceiptRepositoryImpl.kt
@@ -387,15 +397,15 @@ Current parser behavior:
 - Attempts to extract supplier/farmer code.
 - Attempts to extract line items.
 - Attempts to extract commission, damages, unloading, advance, and other deductions.
+- Calculates parser confidence and field confidence.
 
 Current gaps:
 
 - No camera capture.
-- No image OCR.
+- No image OCR orchestration in a dedicated OCR/background module.
 - No crop UI.
 - No smart crop.
 - No OCR confidence.
-- No parser confidence.
 - No validation screen.
 - No original/corrected parser snapshot.
 
@@ -798,7 +808,40 @@ Update this section after every successful iteration.
 - Build passed successfully.
 
 **Next iteration:**
-- Phase 4 — Parser improvement and OCR-to-form mapping.
+- Phase 4/5 — Parser improvement and OCR-to-form mapping.
+
+### Iteration 5 — Phase 4/5 Parser Improvement and OCR-to-Form Mapping
+
+**Date:** 2026-06-14
+**Status:** Completed
+**Scope:** Moved receipt parsing into `core:domain`, improved parser extraction, added parser confidence, added parsed-data mapping, and wired OCR parsing into the receipt entry form.
+**Summary:**
+- Moved `ReceiptOcrParser` from `core:data` into `core:domain:parser`.
+- Added parser confidence and field-level confidence to `ParsedReceiptData`.
+- Improved parsing for broker details, voucher number/date, supplier/farmer code, line items, and deductions.
+- Added `ParsedReceiptMapper` to convert parsed data into receipt, line item, and deduction domain objects.
+- Added parser unit tests in `core:domain`.
+- Updated receipt entry to parse OCR text, show parsed summary, and explicitly apply parsed data to the editable form.
+- Kept parser application explicit so user-corrected fields are not silently overwritten.
+
+**Files touched:**
+- `core/domain/src/main/java/com/farmai/core/domain/model/ParsedReceiptData.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/parser/ReceiptOcrParser.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/mapper/ParsedReceiptMapper.kt`
+- `core/domain/build.gradle.kts`
+- `core/domain/src/test/java/com/farmai/core/domain/parser/ReceiptOcrParserTest.kt`
+- `core/data/src/main/java/com/farmai/core/data/repository/ReceiptRepositoryImpl.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/ReceiptViewModel.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReceiptEntryScreen.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+
+**Verification performed:**
+- `.\gradlew :core:domain:testDebugUnitTest`
+- `.\gradlew :app:assembleDebug`
+- Both commands passed successfully.
+
+**Next iteration:**
+- Phase 6 — Validation Screen.
 
 ---
 

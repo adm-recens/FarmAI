@@ -2,6 +2,7 @@ package com.farmai.feature.receipt.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.farmai.core.domain.mapper.ParsedReceiptMapper
 import com.farmai.core.domain.model.Deduction
 import com.farmai.core.domain.model.DeductionType
 import com.farmai.core.domain.model.ParsedReceiptData
@@ -158,6 +159,21 @@ class ReceiptDetailViewModel @Inject constructor(
     fun clearError() {
         _error.value = null
     }
+
+    private fun buildParseMessage(parsed: ParsedReceiptData): String {
+        val parts = mutableListOf<String>()
+        if (parsed.voucherNumber != null) parts += "voucher"
+        if (parsed.voucherDate != null) parts += "date"
+        if (parsed.supplierCode != null) parts += "farmer code"
+        if (parsed.brokerName != null) parts += "broker"
+        if (parsed.lineItems.isNotEmpty()) parts += "${parsed.lineItems.size} line item(s)"
+        if (parsed.commissionPercent != null || parsed.damagesAmount != null || parsed.unloadingAmount != null || parsed.advanceAmount != null || parsed.otherDeductions.isNotEmpty()) parts += "deductions"
+        return if (parts.isEmpty()) {
+            "No receipt fields were parsed. Review the OCR text and try again."
+        } else {
+            "Parsed ${parts.joinToString(", ")}. Confidence: ${(parsed.confidenceScore * 100).toInt()}%."
+        }
+    }
 }
 
 @HiltViewModel
@@ -184,12 +200,20 @@ class ReceiptEntryViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _parsedReceiptData = MutableStateFlow<ParsedReceiptData?>(null)
+    val parsedReceiptData: StateFlow<ParsedReceiptData?> = _parsedReceiptData
+
+    private val _parseMessage = MutableStateFlow<String?>(null)
+    val parseMessage: StateFlow<String?> = _parseMessage
+
     fun loadReceipt(receiptId: String) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 val receiptData = getReceiptByIdUseCase(receiptId)
                 _receipt.value = receiptData
+                _parsedReceiptData.value = null
+                _parseMessage.value = null
                 if (receiptData != null) {
                     _lineItems.value = getLineItemsUseCase(receiptId)
                     _deductions.value = getDeductionsUseCase(receiptId)
@@ -223,7 +247,9 @@ class ReceiptEntryViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                parseReceiptTextUseCase(rawText)
+                val parsed = parseReceiptTextUseCase(rawText)
+                _parsedReceiptData.value = parsed
+                _parseMessage.value = buildParseMessage(parsed)
                 _error.value = null
             } catch (e: Exception) {
                 _error.value = "Failed to parse receipt: ${e.message}"
@@ -231,6 +257,19 @@ class ReceiptEntryViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    fun applyParsedReceiptData(parsed: ParsedReceiptData) {
+        val receiptId = _receipt.value?.id ?: ""
+        val lineItems = ParsedReceiptMapper.toLineItems(parsed, receiptId)
+        val deductions = ParsedReceiptMapper.toDeductions(parsed, receiptId)
+        if (lineItems.isNotEmpty()) {
+            _lineItems.value = lineItems
+        }
+        if (deductions.isNotEmpty()) {
+            _deductions.value = deductions
+        }
+        _parseMessage.value = "Parsed data applied. Review fields before saving."
     }
 
     fun addLineItem() {
@@ -293,5 +332,20 @@ class ReceiptEntryViewModel @Inject constructor(
 
     fun clearError() {
         _error.value = null
+    }
+
+    private fun buildParseMessage(parsed: ParsedReceiptData): String {
+        val parts = mutableListOf<String>()
+        if (parsed.voucherNumber != null) parts += "voucher"
+        if (parsed.voucherDate != null) parts += "date"
+        if (parsed.supplierCode != null) parts += "farmer code"
+        if (parsed.brokerName != null) parts += "broker"
+        if (parsed.lineItems.isNotEmpty()) parts += "${parsed.lineItems.size} line item(s)"
+        if (parsed.commissionPercent != null || parsed.damagesAmount != null || parsed.unloadingAmount != null || parsed.advanceAmount != null || parsed.otherDeductions.isNotEmpty()) parts += "deductions"
+        return if (parts.isEmpty()) {
+            "No receipt fields were parsed. Review the OCR text and try again."
+        } else {
+            "Parsed ${parts.joinToString(", ")}. Confidence: ${(parsed.confidenceScore * 100).toInt()}%."
+        }
     }
 }

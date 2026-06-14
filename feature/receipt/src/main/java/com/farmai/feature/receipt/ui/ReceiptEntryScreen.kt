@@ -54,11 +54,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.farmai.core.domain.model.Deduction
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.farmai.core.domain.model.Deduction
 import com.farmai.core.domain.model.DeductionType
+import com.farmai.core.domain.model.ParsedReceiptData
 import com.farmai.core.domain.model.Receipt
 import com.farmai.core.domain.model.ReceiptLineItem
 import com.farmai.core.domain.model.ReceiptStatus
@@ -81,6 +82,8 @@ fun ReceiptEntryScreen(
     val receipt by viewModel.receipt.collectAsState()
     val lineItems by viewModel.lineItems.collectAsState()
     val deductions by viewModel.deductions.collectAsState()
+    val parsedReceiptData by viewModel.parsedReceiptData.collectAsState()
+    val parseMessage by viewModel.parseMessage.collectAsState()
     val currentError = error
     val isEditing = receiptId != null
     val context = LocalContext.current
@@ -93,6 +96,25 @@ fun ReceiptEntryScreen(
     var rawOcrText by remember { mutableStateOf(receipt?.ocrRawText ?: "") }
     var imagePaths by remember { mutableStateOf(receipt?.imagePaths ?: emptyList()) }
     var ocrErrorMessage by remember { mutableStateOf<String?>(null) }
+
+    fun applyParsedReceiptData(parsed: ParsedReceiptData) {
+        val parsedVoucherNumber = parsed.voucherNumber
+        val parsedSupplierCode = parsed.supplierCode
+        val parsedBrokerName = parsed.brokerName
+        if (!parsedVoucherNumber.isNullOrBlank()) {
+            voucherNumber = parsedVoucherNumber
+        }
+        if (parsed.voucherDate != null) {
+            voucherDate = formatVoucherDate(parsed.voucherDate)
+        }
+        if (!parsedSupplierCode.isNullOrBlank()) {
+            farmerCode = parsedSupplierCode.uppercase()
+        }
+        if (!parsedBrokerName.isNullOrBlank()) {
+            brokerName = parsedBrokerName
+        }
+        viewModel.applyParsedReceiptData(parsed)
+    }
 
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
@@ -224,10 +246,11 @@ fun ReceiptEntryScreen(
                                     runOcrOnImage(
                                         context = context,
                                         imagePath = imagePaths.last(),
-                                        onSuccess = { text ->
-                                            rawOcrText = text
-                                            ocrErrorMessage = null
-                                        },
+                                         onSuccess = { text ->
+                                             rawOcrText = text
+                                             ocrErrorMessage = null
+                                             viewModel.parseReceiptText(text)
+                                         },
                                         onError = { message ->
                                             ocrErrorMessage = message
                                         }
@@ -352,6 +375,16 @@ fun ReceiptEntryScreen(
                 }
             }
 
+            parsedReceiptData?.let { parsed ->
+                item {
+                    ParsedReceiptSummaryCard(
+                        parsed = parsed,
+                        message = parseMessage,
+                        onApply = { applyParsedReceiptData(parsed) }
+                    )
+                }
+            }
+
             if (ocrErrorMessage != null) {
                 item {
                     Box(
@@ -414,6 +447,66 @@ fun ReceiptEntryScreen(
             }
         }
     }
+}
+
+@Composable
+private fun ParsedReceiptSummaryCard(
+    parsed: ParsedReceiptData,
+    message: String?,
+    onApply: () -> Unit
+) {
+    val brokerName = parsed.brokerName
+    val voucherNumber = parsed.voucherNumber
+    val supplierCode = parsed.supplierCode
+    val voucherDate = parsed.voucherDate
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                stringResource(R.string.parsed_receipt_data),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                message ?: stringResource(R.string.parsed_confidence, ((parsed.confidenceScore * 100).toInt())),
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            if (brokerName != null) {
+                Text(stringResource(R.string.parsed_broker, brokerName), modifier = Modifier.padding(top = 8.dp))
+            }
+            if (voucherNumber != null) {
+                Text(stringResource(R.string.parsed_voucher, voucherNumber), modifier = Modifier.padding(top = 4.dp))
+            }
+            if (voucherDate != null) {
+                Text(stringResource(R.string.parsed_date, formatVoucherDate(voucherDate)), modifier = Modifier.padding(top = 4.dp))
+            }
+            if (supplierCode != null) {
+                Text(stringResource(R.string.parsed_farmer_code, supplierCode), modifier = Modifier.padding(top = 4.dp))
+            }
+            Text(stringResource(R.string.parsed_line_items, parsed.lineItems.size), modifier = Modifier.padding(top = 4.dp))
+            val deductionCount = parsed.otherDeductions.size + listOfNotNull(
+                parsed.commissionPercent,
+                parsed.damagesAmount,
+                parsed.unloadingAmount,
+                parsed.advanceAmount
+            ).size
+            Text(stringResource(R.string.parsed_deductions, deductionCount), modifier = Modifier.padding(top = 4.dp))
+            Button(
+                onClick = onApply,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                enabled = parsed.lineItems.isNotEmpty() || parsed.deductionsPresent()
+            ) {
+                Text(stringResource(R.string.apply_parsed_data))
+            }
+        }
+    }
+}
+
+private fun ParsedReceiptData.deductionsPresent(): Boolean {
+    return commissionPercent != null || damagesAmount != null || unloadingAmount != null || advanceAmount != null || otherDeductions.isNotEmpty()
 }
 
 private fun runOcrOnImage(

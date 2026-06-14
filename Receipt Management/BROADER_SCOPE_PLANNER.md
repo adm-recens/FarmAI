@@ -21,6 +21,9 @@ Current implemented areas:
 - Manual line item entry
 - Manual deduction entry
 - Pasted OCR text parsing
+- Saved image OCR text extraction
+- Structured parser output with confidence scores
+- OCR-to-form mapping for receipt entry
 - Draft/confirmed receipt status
 - Local Room database
 
@@ -41,10 +44,9 @@ Current key files:
 Current known gaps:
 
 - Camera capture is not implemented.
-- Image OCR is not implemented.
-- `parseReceiptImage()` currently returns empty data.
-- OCR parsing is not mapped back into receipt form fields.
-- Receipt date is currently saved as current time instead of parsed voucher date.
+- `parseReceiptImage()` currently returns empty data; image OCR is currently triggered from the receipt entry UI.
+- OCR orchestration should move into a dedicated OCR/background module.
+- Receipt date parsing is improved, but final validation snapshots are not stored.
 - PDF/share/export are placeholders.
 - Reports exist at repository/query level but not as UI screens.
 - Sync exists as a status value but no sync implementation exists.
@@ -1310,7 +1312,40 @@ Update this section after every successful iteration.
 - Build passed successfully.
 
 **Next iteration:**
-- Phase 4 — Parser improvement and OCR-to-form mapping.
+- Phase 4/5 — Parser improvement and OCR-to-form mapping.
+
+### Iteration 5 — Phase 4/5 Parser Improvement and OCR-to-Form Mapping
+
+**Date:** 2026-06-14
+**Status:** Completed
+**Scope:** Improved receipt parser, added parser confidence, added parsed-data mapping, and wired parsed OCR output into the editable receipt form.
+**Summary:**
+- Moved receipt parsing into `core:domain:parser`.
+- Added confidence scores and field-level confidence to `ParsedReceiptData`.
+- Improved extraction of broker details, voucher number/date, supplier/farmer code, line items, and deductions.
+- Added `ParsedReceiptMapper` for converting parsed data into receipt, line item, and deduction domain objects.
+- Added parser unit tests in `core:domain`.
+- Updated receipt entry UI to show parsed summary and explicitly apply parsed data to form fields.
+- Kept parsed-data application explicit to avoid silently overwriting user-corrected fields.
+
+**Files touched:**
+- `core/domain/src/main/java/com/farmai/core/domain/model/ParsedReceiptData.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/parser/ReceiptOcrParser.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/mapper/ParsedReceiptMapper.kt`
+- `core/domain/build.gradle.kts`
+- `core/domain/src/test/java/com/farmai/core/domain/parser/ReceiptOcrParserTest.kt`
+- `core/data/src/main/java/com/farmai/core/data/repository/ReceiptRepositoryImpl.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/ReceiptViewModel.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReceiptEntryScreen.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+
+**Verification performed:**
+- `.\gradlew :core:domain:testDebugUnitTest`
+- `.\gradlew :app:assembleDebug`
+- Both commands passed successfully.
+
+**Next iteration:**
+- Phase 6 — Validation Screen.
 
 ---
 
