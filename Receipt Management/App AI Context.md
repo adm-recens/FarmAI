@@ -774,7 +774,31 @@ Update this section after every successful iteration.
 - Build passed successfully.
 
 **Next iteration:**
-- Phase 3 — OCR text extraction foundation.
+- Phase 4 — Parser improvement and OCR-to-form mapping.
+
+### Iteration 4 — Phase 3 ML Kit Image OCR
+
+**Date:** 2026-06-14  
+**Status:** Completed  
+**Scope:** Added ML Kit image OCR from saved receipt images into receipt entry/edit flow.  
+**Summary:**
+- Added `Run OCR on Image` action for saved receipt images.
+- Used ML Kit Latin text recognizer to extract text from the selected image.
+- Populated the OCR text field with extracted image OCR text.
+- Added OCR error display for failed OCR runs.
+- Preserved existing OCR text while editing receipts.
+- Kept OCR execution in the UI layer for this phase; future phases should move OCR orchestration into a dedicated OCR/background module.
+
+**Files touched:**
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReceiptEntryScreen.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+
+**Verification performed:**
+- `.\gradlew :app:assembleDebug`
+- Build passed successfully.
+
+**Next iteration:**
+- Phase 4 — Parser improvement and OCR-to-form mapping.
 
 ---
 

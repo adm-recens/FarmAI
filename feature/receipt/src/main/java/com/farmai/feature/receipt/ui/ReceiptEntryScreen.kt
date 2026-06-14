@@ -55,6 +55,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.farmai.core.domain.model.Deduction
+import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.farmai.core.domain.model.DeductionType
 import com.farmai.core.domain.model.Receipt
 import com.farmai.core.domain.model.ReceiptLineItem
@@ -89,6 +92,7 @@ fun ReceiptEntryScreen(
     var brokerName by remember { mutableStateOf(receipt?.brokerId ?: "") }
     var rawOcrText by remember { mutableStateOf(receipt?.ocrRawText ?: "") }
     var imagePaths by remember { mutableStateOf(receipt?.imagePaths ?: emptyList()) }
+    var ocrErrorMessage by remember { mutableStateOf<String?>(null) }
 
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
@@ -113,6 +117,7 @@ fun ReceiptEntryScreen(
             brokerName = it.brokerId
             rawOcrText = it.ocrRawText ?: ""
             imagePaths = it.imagePaths
+            ocrErrorMessage = null
         }
     }
 
@@ -214,6 +219,25 @@ fun ReceiptEntryScreen(
                                     .height(240.dp)
                                     .padding(top = 12.dp)
                             )
+                            Button(
+                                onClick = {
+                                    runOcrOnImage(
+                                        context = context,
+                                        imagePath = imagePaths.last(),
+                                        onSuccess = { text ->
+                                            rawOcrText = text
+                                            ocrErrorMessage = null
+                                        },
+                                        onError = { message ->
+                                            ocrErrorMessage = message
+                                        }
+                                    )
+                                },
+                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                                enabled = !isLoading
+                            ) {
+                                Text(stringResource(R.string.run_image_ocr))
+                            }
                         }
                     }
                 }
@@ -328,6 +352,19 @@ fun ReceiptEntryScreen(
                 }
             }
 
+            if (ocrErrorMessage != null) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.Red.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                            .padding(16.dp)
+                    ) {
+                        Text(ocrErrorMessage.orEmpty(), color = Color.Red, fontWeight = FontWeight.Medium)
+                    }
+                }
+            }
+
             item {
                 Button(
                     onClick = {
@@ -377,6 +414,27 @@ fun ReceiptEntryScreen(
             }
         }
     }
+}
+
+private fun runOcrOnImage(
+    context: Context,
+    imagePath: String,
+    onSuccess: (String) -> Unit,
+    onError: (String) -> Unit
+) {
+    val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    val image = InputImage.fromFilePath(context, Uri.parse(imagePath))
+
+    recognizer.process(image)
+        .addOnSuccessListener { visionText ->
+            onSuccess(visionText.text)
+        }
+        .addOnFailureListener { error ->
+            onError(error.message ?: "OCR failed")
+        }
+        .addOnCompleteListener {
+            recognizer.close()
+        }
 }
 
 private fun parseVoucherDate(value: String): Long? {
