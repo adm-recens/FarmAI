@@ -21,6 +21,9 @@
     <string name="add_line_item">Add Line Item</string>
     <string name="add_deduction">Add Deduction</string>
     <string name="ocr_text">OCR Text</string>
+    <string name="receipt_image">Receipt Image</string>
+    <string name="import_image">Import Image</string>
+    <string name="receipt_image_preview">Receipt image preview</string>
     <string name="paste_ocr_text">Paste OCR Text</string>
     <string name="parse_text">Parse Text</string>
     <string name="save_receipt">Save Receipt</string>

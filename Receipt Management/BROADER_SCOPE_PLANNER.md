@@ -1262,7 +1262,31 @@ Update this section after every successful iteration.
 - Build passed successfully.
 
 **Next iteration:**
-- Phase 2 — Camera/gallery capture foundation and image storage.
+- Phase 3 — OCR text extraction foundation.
+
+### Iteration 3 — Phase 2 Gallery Import and Image Storage
+
+**Date:** 2026-06-14  
+**Status:** Completed  
+**Scope:** Added gallery image import and app-controlled image storage to receipt entry/edit flow.  
+**Summary:**
+- Added image picker to `ReceiptEntryScreen`.
+- Copied selected gallery images into app-specific `receipt_images` storage.
+- Stored selected image paths in the receipt `imagePaths` list.
+- Added receipt image preview using Coil.
+- Preserved existing image paths when editing receipts.
+- Added strings for receipt image import/preview.
+
+**Files touched:**
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReceiptEntryScreen.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+
+**Verification performed:**
+- `.\gradlew :app:assembleDebug`
+- Build passed successfully.
+
+**Next iteration:**
+- Phase 3 — OCR text extraction foundation.
 
 ---
 

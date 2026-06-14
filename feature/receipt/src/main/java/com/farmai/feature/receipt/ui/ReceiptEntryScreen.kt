@@ -1,5 +1,9 @@
 package com.farmai.feature.receipt.ui
 
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,10 +40,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.farmai.core.domain.model.Deduction
 import com.farmai.core.domain.model.DeductionType
 import com.farmai.core.domain.model.Receipt
@@ -54,6 +61,10 @@ import com.farmai.core.domain.model.ReceiptLineItem
 import com.farmai.core.domain.model.ReceiptStatus
 import com.farmai.feature.receipt.R
 import com.farmai.feature.receipt.viewmodel.ReceiptEntryViewModel
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,12 +80,24 @@ fun ReceiptEntryScreen(
     val deductions by viewModel.deductions.collectAsState()
     val currentError = error
     val isEditing = receiptId != null
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     var voucherNumber by remember { mutableStateOf(receipt?.voucherNumber ?: "") }
     var voucherDate by remember { mutableStateOf(formatVoucherDate(receipt?.voucherDate)) }
     var farmerCode by remember { mutableStateOf(receipt?.farmerId ?: "") }
     var brokerName by remember { mutableStateOf(receipt?.brokerId ?: "") }
     var rawOcrText by remember { mutableStateOf(receipt?.ocrRawText ?: "") }
+    var imagePaths by remember { mutableStateOf(receipt?.imagePaths ?: emptyList()) }
+
+    val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let {
+            scope.launch {
+                val savedPath = saveReceiptImage(context, it)
+                imagePaths = imagePaths + savedPath
+            }
+        }
+    }
 
     LaunchedEffect(receiptId) {
         if (receiptId != null) {
@@ -89,6 +112,7 @@ fun ReceiptEntryScreen(
             farmerCode = it.farmerId
             brokerName = it.brokerId
             rawOcrText = it.ocrRawText ?: ""
+            imagePaths = it.imagePaths
         }
     }
 
@@ -157,6 +181,40 @@ fun ReceiptEntryScreen(
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true
                         )
+                    }
+                }
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                stringResource(R.string.receipt_image),
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            IconButton(onClick = { imagePicker.launch("image/*") }) {
+                                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.import_image))
+                            }
+                        }
+                        if (imagePaths.isNotEmpty()) {
+                            AsyncImage(
+                                model = File(imagePaths.last()),
+                                contentDescription = stringResource(R.string.receipt_image_preview),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp)
+                                    .padding(top = 12.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -280,7 +338,7 @@ fun ReceiptEntryScreen(
                             brokerId = brokerName,
                             voucherNumber = voucherNumber,
                             voucherDate = parsedVoucherDate,
-                            imagePaths = receipt?.imagePaths ?: emptyList(),
+                            imagePaths = imagePaths,
                             ocrRawText = rawOcrText.ifBlank { receipt?.ocrRawText },
                             status = receipt?.status ?: ReceiptStatus.DRAFT,
                             createdAt = receipt?.createdAt ?: System.currentTimeMillis()
@@ -340,6 +398,19 @@ private fun parseVoucherDate(value: String): Long? {
 private fun formatVoucherDate(value: Long?): String {
     if (value == null) return ""
     return java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(java.util.Date(value))
+}
+
+private suspend fun saveReceiptImage(context: Context, uri: Uri): String {
+    val directory = context.getExternalFilesDir("receipt_images") ?: context.filesDir
+    directory.mkdirs()
+    val extension = context.contentResolver.getType(uri)?.split("/")?.lastOrNull() ?: "jpg"
+    val file = File(directory, "${UUID.randomUUID()}.$extension")
+    context.contentResolver.openInputStream(uri)?.use { input ->
+        FileOutputStream(file).use { output ->
+            input.copyTo(output)
+        }
+    }
+    return file.absolutePath
 }
 
 @Composable
