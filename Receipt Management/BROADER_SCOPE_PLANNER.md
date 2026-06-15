@@ -4,7 +4,7 @@
 
 **Source context:** `App AI Context.md` for the Android app. `AI_CONTEXT.md` is historical web-platform context only.
 
-**Last updated:** 2026-06-14
+**Last updated:** 2026-06-15
 
 ---
 
@@ -27,6 +27,7 @@ Current implemented areas:
 - Validation screen with original/corrected parser snapshots
 - Validation status tracking
 - Batch queue list/detail and manual receipt job status updates
+- Smart crop UI with draggable crop rectangle and crop-box persistence
 - Draft/confirmed receipt status
 - Local Room database
 
@@ -50,6 +51,7 @@ Current known gaps:
 - `parseReceiptImage()` currently returns empty data; image OCR is currently triggered from the receipt entry UI.
 - OCR orchestration should move into a dedicated OCR/background module.
 - Batch queue background WorkManager crop/OCR/parse workers are not implemented yet.
+- OCR workers do not yet consume stored crop boxes.
 - PDF/share/export are placeholders.
 - Reports exist at repository/query level but not as UI screens.
 - Sync exists as a status value but no sync implementation exists.
@@ -1027,6 +1029,20 @@ Tasks:
 - Train smart crop thresholds from corrections.
 - Add confidence score.
 
+Implemented in this iteration:
+
+- Added `CropBox` and `SmartCropProfile` domain models.
+- Added crop use cases and JSON persistence helpers.
+- Added `SmartCropScreen` and `SmartCropViewModel`.
+- Added lightweight content-based auto-crop heuristic and manual crop override persistence.
+- Added `ReceiptJobStatus.CROPPED`, crop-box JSON, crop confidence, and batch count refreshes.
+
+Still pending:
+
+- WorkManager crop worker.
+- Actual cropped image file output and OCR consumption of crop boxes.
+- Persistent smart-crop threshold learning from manual corrections.
+
 Deliverable:
 
 App can crop receipt images before OCR.
@@ -1434,6 +1450,46 @@ Update this section after every successful iteration.
 
 **Next iteration:**
 - Phase 8 — Smart Crop.
+
+### Iteration 8 — Phase 8 Smart Crop
+
+**Date:** 2026-06-15
+**Status:** Completed
+**Scope:** Added smart crop model, crop UI, crop-box persistence, and batch queue crop status tracking.
+**Summary:**
+- Added `CropBox` and `SmartCropProfile` domain models with JSON encode/decode helpers.
+- Added crop-box use cases for observing jobs, generating auto-crop boxes, and persisting saved crop boxes.
+- Added `ReceiptJobStatus.CROPPED` and persisted crop-box JSON/confidence on receipt jobs.
+- Added `SmartCropScreen` with image preview, draggable crop rectangle, auto-crop, skip crop, crop values, and save action.
+- Added `SmartCropViewModel` with image dimension reading and lightweight content-based auto-crop heuristic.
+- Added batch count refresh after job add/update/delete, including `totalImages`, processed, validated, failed, and derived batch status.
+- Added queue job crop navigation from `BatchDetailScreen`.
+- Added crop-box unit tests.
+- Kept WorkManager OCR/crop workers and actual cropped-image output for a future phase.
+
+**Files touched:**
+- `core/domain/src/main/java/com/farmai/core/domain/model/CropBox.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/model/ReceiptJob.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/repository/BatchRepository.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/usecase/crop/CropUseCases.kt`
+- `core/domain/src/test/java/com/farmai/core/domain/model/CropBoxTest.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/dao/BatchDao.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/dao/ReceiptJobDao.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/entity/ReceiptJobEntity.kt`
+- `core/data/src/main/java/com/farmai/core/data/repository/BatchRepositoryImpl.kt`
+- `app/src/main/java/com/farmai/app/navigation/FarmAINavHost.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/BatchDetailScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/SmartCropScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/SmartCropViewModel.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+
+**Verification performed:**
+- `.\gradlew :core:domain:testDebugUnitTest`
+- `.\gradlew :app:assembleDebug`
+- Both commands passed successfully.
+
+**Next iteration:**
+- Phase 9 — Reports.
 
 ---
 

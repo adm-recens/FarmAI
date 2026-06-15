@@ -12,8 +12,8 @@ import com.farmai.core.domain.model.BatchStatus
 import com.farmai.core.domain.model.ReceiptJob
 import com.farmai.core.domain.model.ReceiptJobStatus
 import com.farmai.core.domain.repository.BatchRepository
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -33,12 +33,20 @@ class BatchRepositoryImpl @Inject constructor(
         return batchDao.getBatchById(id).map { it?.toDomain() }
     }
 
+    override fun observeJobById(id: String): Flow<ReceiptJob?> {
+        return receiptJobDao.getJobById(id).map { it?.toDomain() }
+    }
+
     override fun observeJobsByBatch(batchId: String): Flow<List<ReceiptJob>> {
         return receiptJobDao.observeJobsByBatch(batchId).map { entities -> entities.map { it.toDomain() } }
     }
 
     override suspend fun getBatchById(id: String): Batch? {
         return batchDao.getBatchById(id).first()?.toDomain()
+    }
+
+    override suspend fun getJobById(id: String): ReceiptJob? {
+        return receiptJobDao.getJobById(id).first()?.toDomain()
     }
 
     override suspend fun createBatch(name: String, notes: String?): Batch {
@@ -60,19 +68,35 @@ class BatchRepositoryImpl @Inject constructor(
             status = DataReceiptJobStatus.QUEUED.name
         )
         receiptJobDao.insertJob(job)
+        batchDao.updateBatchCounts(batchId, System.currentTimeMillis())
         return job.toDomain()
     }
 
     override suspend fun updateJobStatus(jobId: String, status: ReceiptJobStatus) {
-        receiptJobDao.updateJobStatus(jobId, status.name, System.currentTimeMillis())
+        val now = System.currentTimeMillis()
+        receiptJobDao.updateJobStatus(jobId, status.name, now)
+        val job = receiptJobDao.getJobById(jobId).first()
+        job?.let { batchDao.updateBatchCounts(it.batchId, now) }
+    }
+
+    override suspend fun updateJobCropBox(jobId: String, cropBoxJson: String, confidenceScore: Double) {
+        val now = System.currentTimeMillis()
+        receiptJobDao.updateJobCropBox(jobId, cropBoxJson, confidenceScore, now)
+        val job = receiptJobDao.getJobById(jobId).first()
+        job?.let { batchDao.updateBatchCounts(it.batchId, now) }
     }
 
     override suspend fun markJobFailed(jobId: String, error: String?) {
-        receiptJobDao.markJobFailed(jobId, error, System.currentTimeMillis())
+        val now = System.currentTimeMillis()
+        receiptJobDao.markJobFailed(jobId, error, now)
+        val job = receiptJobDao.getJobById(jobId).first()
+        job?.let { batchDao.updateBatchCounts(it.batchId, now) }
     }
 
     override suspend fun deleteJob(jobId: String) {
+        val job = receiptJobDao.getJobById(jobId).first()
         receiptJobDao.deleteJob(jobId)
+        job?.let { batchDao.updateBatchCounts(it.batchId, System.currentTimeMillis()) }
     }
 
     override suspend fun deleteBatch(batchId: String) {

@@ -24,6 +24,7 @@ data class ReceiptJob(
 enum class ReceiptJobStatus {
     QUEUED,
     CROPPING,
+    CROPPED,
     OCR_RUNNING,
     PARSED,
     NEEDS_VALIDATION,

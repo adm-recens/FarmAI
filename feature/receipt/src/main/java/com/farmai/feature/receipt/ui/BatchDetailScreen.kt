@@ -124,6 +124,7 @@ fun BatchDetailScreen(
                             Text("Name: ${b.name}", modifier = Modifier.padding(top = 8.dp))
                             Text("Status: ${b.status.name}", modifier = Modifier.padding(top = 4.dp))
                             Text("Jobs: ${jobs.size}", modifier = Modifier.padding(top = 4.dp))
+                            Text("Processed: ${b.processedCount}", modifier = Modifier.padding(top = 4.dp))
                             Text("Validated: ${b.validatedCount}", modifier = Modifier.padding(top = 4.dp))
                             Text("Failed: ${b.failedCount}", modifier = Modifier.padding(top = 4.dp))
                             Row(
@@ -156,6 +157,7 @@ fun BatchDetailScreen(
                 items(jobs) { job ->
                     BatchJobCard(
                         job = job,
+                        onCrop = { navController.navigate("queue/job/${job.id}/crop") },
                         onMarkParsed = { viewModel.updateJobStatus(job.id, ReceiptJobStatus.PARSED) },
                         onNeedsValidation = { viewModel.updateJobStatus(job.id, ReceiptJobStatus.NEEDS_VALIDATION) },
                         onValidated = { viewModel.updateJobStatus(job.id, ReceiptJobStatus.VALIDATED) },
@@ -197,6 +199,7 @@ fun BatchDetailScreen(
 @Composable
 private fun BatchJobCard(
     job: com.farmai.core.domain.model.ReceiptJob,
+    onCrop: () -> Unit,
     onMarkParsed: () -> Unit,
     onNeedsValidation: () -> Unit,
     onValidated: () -> Unit,
@@ -220,6 +223,7 @@ private fun BatchJobCard(
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                Button(onClick = onCrop, enabled = enabled && job.imagePath != null, modifier = Modifier.weight(1f)) { Text("Crop") }
                 Button(onClick = onMarkParsed, enabled = enabled, modifier = Modifier.weight(1f)) { Text("Parsed") }
                 Button(onClick = onNeedsValidation, enabled = enabled, modifier = Modifier.weight(1f)) { Text("Validate") }
             }

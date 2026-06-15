@@ -16,6 +16,7 @@ import com.farmai.feature.receipt.ui.ReceiptDetailScreen
 import com.farmai.feature.receipt.ui.ReceiptEntryScreen
 import com.farmai.feature.receipt.ui.ReceiptListScreen
 import com.farmai.feature.receipt.ui.ReceiptValidationScreen
+import com.farmai.feature.receipt.ui.SmartCropScreen
 
 @Composable
 fun FarmAINavHost(
@@ -86,6 +87,10 @@ fun FarmAINavHost(
         composable("receipt/validate/{receiptId}") { backStackEntry ->
             val receiptId = backStackEntry.arguments?.getString("receiptId") ?: return@composable
             ReceiptValidationScreen(navController = navController, receiptId = receiptId)
+        }
+        composable("queue/job/{jobId}/crop") { backStackEntry ->
+            val jobId = backStackEntry.arguments?.getString("jobId") ?: return@composable
+            SmartCropScreen(navController = navController, jobId = jobId)
         }
     }
 }

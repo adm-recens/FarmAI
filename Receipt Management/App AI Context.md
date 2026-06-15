@@ -6,7 +6,7 @@
 
 **Broader scope plan:** `BROADER_SCOPE_PLANNER.md`
 
-**Last updated:** 2026-06-14
+**Last updated:** 2026-06-15
 
 ---
 
@@ -215,9 +215,8 @@ Current limitations:
 - Image OCR is implemented for saved receipt images, but camera capture is not implemented.
 - OCR text parsing now produces structured data with confidence scores and can be applied to the receipt form, but OCR orchestration is still in the UI layer.
 - Batch queue list/detail and receipt job status updates are implemented, but background WorkManager crop/OCR/parse workers are not implemented yet.
-- No crop UI.
-- No smart crop.
-- No batch queue, ML feedback loop, reports UI, export UI, supplier management, or sync implementation.
+- Smart crop UI and crop-box storage are implemented, but OCR workers do not consume cropped images yet.
+- ML feedback training, reports UI, export UI, supplier management, and sync are not implemented.
 
 ---
 
@@ -364,6 +363,7 @@ Main domain models:
 | `Deduction` | `core/domain/src/main/java/com/farmai/core/domain/model/Deduction.kt` |
 | `ParsedReceiptData` | `core/domain/src/main/java/com/farmai/core/domain/model/ParsedReceiptData.kt` |
 | `ValidationSnapshot` | `core/domain/src/main/java/com/farmai/core/domain/model/ValidationSnapshot.kt` |
+| `CropBox` | `core/domain/src/main/java/com/farmai/core/domain/model/CropBox.kt` |
 | Report models | `core/domain/src/main/java/com/farmai/core/domain/model/ReportModels.kt` |
 
 Receipt statuses:
@@ -385,6 +385,7 @@ Current note:
 Current OCR behavior:
 
 - `parseReceiptImage()` still returns an empty `ParsedReceiptData()` placeholder.
+- Smart crop can generate and persist a crop box for receipt jobs, but OCR has not yet been wired to use the crop box.
 - `parseReceiptText(rawText)` parses pasted OCR text and image OCR text into structured fields.
 - Parser output now includes confidence scores and field-level confidence.
 - Receipt entry can apply parsed OCR data to voucher, date, farmer code, broker, line items, and deductions.
@@ -416,10 +417,8 @@ Current gaps:
 
 - No camera capture.
 - No image OCR orchestration in a dedicated OCR/background module.
-- No crop UI.
-- No smart crop.
-- No OCR confidence.
-- No smart crop, ML feedback loop, reports UI, export UI, supplier management, or sync implementation.
+- OCR workers do not yet consume crop boxes.
+- No ML feedback loop, reports UI, export UI, supplier management, or sync implementation.
 
 ---
 
@@ -933,6 +932,46 @@ Update this section after every successful iteration.
 
 **Next iteration:**
 - Phase 8 — Smart Crop.
+
+### Iteration 8 — Phase 8 Smart Crop
+
+**Date:** 2026-06-15
+**Status:** Completed
+**Scope:** Added smart crop model, crop UI, crop-box persistence, and batch queue crop status tracking.
+**Summary:**
+- Added `CropBox` and `SmartCropProfile` domain models with JSON encode/decode helpers.
+- Added crop-box use cases for observing jobs, generating auto-crop boxes, and persisting saved crop boxes.
+- Added `ReceiptJobStatus.CROPPED` and persisted crop-box JSON/confidence on receipt jobs.
+- Added `SmartCropScreen` with image preview, draggable crop rectangle, auto-crop, skip crop, crop values, and save action.
+- Added `SmartCropViewModel` with image dimension reading and lightweight content-based auto-crop heuristic.
+- Added batch count refresh after job add/update/delete, including `totalImages`, processed, validated, failed, and derived batch status.
+- Added queue job crop navigation from `BatchDetailScreen`.
+- Added crop-box unit tests.
+- Kept WorkManager OCR/crop workers and actual cropped-image output for a future phase.
+
+**Files touched:**
+- `core/domain/src/main/java/com/farmai/core/domain/model/CropBox.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/model/ReceiptJob.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/repository/BatchRepository.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/usecase/crop/CropUseCases.kt`
+- `core/domain/src/test/java/com/farmai/core/domain/model/CropBoxTest.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/dao/BatchDao.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/dao/ReceiptJobDao.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/entity/ReceiptJobEntity.kt`
+- `core/data/src/main/java/com/farmai/core/data/repository/BatchRepositoryImpl.kt`
+- `app/src/main/java/com/farmai/app/navigation/FarmAINavHost.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/BatchDetailScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/SmartCropScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/SmartCropViewModel.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+
+**Verification performed:**
+- `.\gradlew :core:domain:testDebugUnitTest`
+- `.\gradlew :app:assembleDebug`
+- Both commands passed successfully.
+
+**Next iteration:**
+- Phase 9 — Reports.
 
 ---
 

@@ -13,11 +13,11 @@ interface ReceiptJobDao {
     @Query("SELECT * FROM receipt_jobs ORDER BY createdAt DESC")
     fun observeAllJobs(): Flow<List<ReceiptJobEntity>>
 
-    @Query("SELECT * FROM receipt_jobs WHERE batchId = :batchId ORDER BY createdAt ASC")
-    fun observeJobsByBatch(batchId: String): Flow<List<ReceiptJobEntity>>
-
     @Query("SELECT * FROM receipt_jobs WHERE id = :id")
     fun getJobById(id: String): Flow<ReceiptJobEntity?>
+
+    @Query("SELECT * FROM receipt_jobs WHERE batchId = :batchId ORDER BY createdAt ASC")
+    fun observeJobsByBatch(batchId: String): Flow<List<ReceiptJobEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertJob(job: ReceiptJobEntity)
@@ -27,6 +27,9 @@ interface ReceiptJobDao {
 
     @Query("UPDATE receipt_jobs SET status = :status, updatedAt = :updatedAt WHERE id = :id")
     suspend fun updateJobStatus(id: String, status: String, updatedAt: Long)
+
+    @Query("UPDATE receipt_jobs SET cropBoxJson = :cropBoxJson, confidenceScore = :confidenceScore, status = 'CROPPED', updatedAt = :updatedAt WHERE id = :id")
+    suspend fun updateJobCropBox(id: String, cropBoxJson: String, confidenceScore: Double, updatedAt: Long)
 
     @Query("UPDATE receipt_jobs SET error = :error, attemptCount = attemptCount + 1, updatedAt = :updatedAt WHERE id = :id")
     suspend fun markJobFailed(id: String, error: String?, updatedAt: Long)
