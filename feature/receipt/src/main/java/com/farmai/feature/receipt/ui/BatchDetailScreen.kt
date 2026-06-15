@@ -139,6 +139,25 @@ fun BatchDetailScreen(
                                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                                 }
                                 Button(
+                                    onClick = { viewModel.shareBatchCsv(context, b, jobs) },
+                                    modifier = Modifier.weight(1f),
+                                    enabled = !isLoading
+                                ) {
+                                    Text(stringResource(R.string.batch_export_csv_excel))
+                                }
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = { viewModel.shareBatchPdf(context, b, jobs) },
+                                    modifier = Modifier.weight(1f),
+                                    enabled = !isLoading
+                                ) {
+                                    Text(stringResource(R.string.batch_export_pdf))
+                                }
+                                Button(
                                     onClick = { viewModel.deleteBatch(b.id); navController.popBackStack() },
                                     modifier = Modifier.weight(1f),
                                     enabled = !isLoading,

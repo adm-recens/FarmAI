@@ -216,7 +216,7 @@ Current limitations:
 - OCR text parsing now produces structured data with confidence scores and can be applied to the receipt form, but OCR orchestration is still in the UI layer.
 - Batch queue list/detail and receipt job status updates are implemented, but background WorkManager crop/OCR/parse workers are not implemented yet.
 - Smart crop UI and crop-box storage are implemented, but OCR workers do not consume cropped images yet.
-- Export UI, supplier management, and sync are not implemented.
+- Supplier management and sync are not implemented; export/share foundation is implemented.
 
 ---
 
@@ -418,7 +418,7 @@ Current gaps:
 - No camera capture.
 - No image OCR orchestration in a dedicated OCR/background module.
 - OCR workers do not yet consume crop boxes.
-- Export UI, supplier management, and sync are not implemented.
+- Supplier management and sync are not implemented; export/share foundation is implemented.
 
 ---
 
@@ -450,10 +450,10 @@ Important fix:
 
 Not implemented:
 
-- PDF export
-- Excel export
-- CSV export
-- Share sheet
+- Dedicated `core:export` module.
+- Rich Excel/XLSX templates.
+- Exported-file management and cleanup.
+- Exported receipt PDF layout with receipt images.
 
 ---
 
@@ -974,7 +974,7 @@ Update this section after every successful iteration.
 - Added home navigation entry for reports.
 - Fixed `ReportDao` queries to aggregate line items and deductions per receipt before joining, preventing deduction duplication on multi-line receipts.
 - Added report UI strings for filters, report sections, and metric cards.
-- Kept PDF/Excel/CSV/share export implementation for the next phase.
+- Added report UI strings for filters, report sections, metric cards, and export actions.
 
 **Files touched:**
 - `core/data/src/main/java/com/farmai/core/data/local/dao/ReportDao.kt`
@@ -993,7 +993,44 @@ Update this section after every successful iteration.
 - Both commands passed successfully.
 
 **Next iteration:**
-- Phase 10 — Export/Share.
+- Phase 11 — Supplier Management.
+
+### Iteration 10 — Phase 10 Export/Share
+
+**Date:** 2026-06-15  
+**Status:** Completed  
+**Scope:** Added receipt, batch, and report export/share support with CSV, PDF, FileProvider sharing, and export history.  
+**Summary:**
+- Added `ExportShare` helper for CSV/PDF generation, Android share-sheet intents, and app-controlled export storage.
+- Added FileProvider configuration so exported files can be shared safely.
+- Added receipt detail CSV/PDF export actions.
+- Added batch detail CSV/PDF export actions.
+- Added report CSV/Excel-compatible and PDF export actions.
+- Added export history persistence in app-controlled exports storage and a Reports screen history section.
+- Kept PDF/Excel/share implementation in the feature layer for this phase; future phases may move export logic into a dedicated `core:export` module.
+
+**Files touched:**
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ExportShare.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReportsScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/ReportsViewModel.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReceiptDetailScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/ReceiptViewModel.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/BatchDetailScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/BatchDetailViewModel.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+- `feature/receipt/build.gradle.kts`
+- `app/src/main/AndroidManifest.xml`
+- `app/src/main/res/xml/file_paths.xml`
+- `Receipt Management\App AI Context.md`
+- `Receipt Management\BROADER_SCOPE_PLANNER.md`
+
+**Verification performed:**
+- `.\gradlew :app:assembleDebug`
+- `.\gradlew :core:domain:testDebugUnitTest`
+- Both commands passed successfully.
+
+**Next iteration:**
+- Phase 11 — Supplier Management.
 
 ---
 

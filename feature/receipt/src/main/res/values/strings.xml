@@ -51,6 +51,8 @@
     <string name="no_batches_found">No batches found</string>
     <string name="batch_detail">Batch Detail</string>
     <string name="batch_summary">Batch Summary</string>
+    <string name="batch_export_csv_excel">Export CSV / Excel</string>
+    <string name="batch_export_pdf">Export PDF</string>
     <string name="smart_crop">Smart Crop</string>
     <string name="smart_crop_subtitle">Adjust receipt boundaries before OCR</string>
     <string name="smart_crop_hint">Drag the crop box over the receipt image. Use Auto crop for a first guess or Skip crop to keep the full image.</string>
@@ -77,6 +79,10 @@
     <string name="reports_monthly_trends">Monthly trends</string>
     <string name="reports_deduction_analysis">Deduction analysis</string>
     <string name="reports_export_rows">Export rows</string>
+    <string name="reports_export_csv_excel">Export CSV / Excel</string>
+    <string name="reports_export_pdf">Export PDF</string>
+    <string name="reports_export_history">Export History</string>
+    <string name="export_history_item">%1$s · %2$s · %3$s · %4$d row(s)</string>
     <string name="reports_no_data">No report data found for the selected filters.</string>
     <string name="reports_farmer_code">Farmer code: %1$s</string>
     <string name="reports_deduction_count">Count: %1$d</string>

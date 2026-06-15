@@ -36,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -63,6 +64,7 @@ fun ReceiptDetailScreen(
 
     val currentReceipt = receipt
     val currentError = error
+    val context = LocalContext.current
 
     LaunchedEffect(receiptId) {
         viewModel.loadReceipt(receiptId)
@@ -84,10 +86,18 @@ fun ReceiptDetailScreen(
                 IconButton(onClick = { navController.navigate("receipt/validate/${receiptId}") }) {
                     Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.validate_receipt))
                 }
-                IconButton(onClick = { /* TODO: Export PDF */ }) {
+                IconButton(
+                    onClick = {
+                        currentReceipt?.let { viewModel.shareReceiptPdf(context, it, lineItems, deductions) }
+                    }
+                ) {
                     Icon(Icons.Default.PictureAsPdf, contentDescription = stringResource(R.string.export_pdf))
                 }
-                IconButton(onClick = { /* TODO: Share */ }) {
+                IconButton(
+                    onClick = {
+                        currentReceipt?.let { viewModel.shareReceiptCsv(context, it, lineItems, deductions) }
+                    }
+                ) {
                     Icon(Icons.Default.Share, contentDescription = stringResource(R.string.share))
                 }
             }

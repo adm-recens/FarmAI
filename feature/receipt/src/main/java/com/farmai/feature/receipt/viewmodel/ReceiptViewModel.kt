@@ -1,5 +1,6 @@
 package com.farmai.feature.receipt.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.farmai.core.domain.mapper.ParsedReceiptMapper
@@ -11,6 +12,7 @@ import com.farmai.core.domain.model.ReceiptLineItem
 import com.farmai.core.domain.model.ReceiptStatus
 import com.farmai.core.domain.usecase.NoParams
 import com.farmai.core.domain.usecase.receipt.*
+import com.farmai.feature.receipt.ui.ExportShare
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -153,6 +155,34 @@ class ReceiptDetailViewModel @Inject constructor(
             } catch (e: Exception) {
                 _error.value = "Failed to delete receipt: ${e.message}"
             }
+        }
+    }
+
+    fun shareReceiptCsv(
+        context: Context,
+        receipt: Receipt,
+        lineItems: List<ReceiptLineItem>,
+        deductions: List<Deduction>
+    ) {
+        try {
+            ExportShare.shareReceiptCsv(context, receipt, lineItems, deductions)
+            _error.value = null
+        } catch (e: Exception) {
+            _error.value = "Failed to export receipt CSV: ${e.message}"
+        }
+    }
+
+    fun shareReceiptPdf(
+        context: Context,
+        receipt: Receipt,
+        lineItems: List<ReceiptLineItem>,
+        deductions: List<Deduction>
+    ) {
+        try {
+            ExportShare.shareReceiptPdf(context, receipt, lineItems, deductions)
+            _error.value = null
+        } catch (e: Exception) {
+            _error.value = "Failed to export receipt PDF: ${e.message}"
         }
     }
 

@@ -23,10 +23,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,6 +60,13 @@ fun ReportsScreen(
     val exportRows by viewModel.exportRows.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val exportMessage by viewModel.exportMessage.collectAsState()
+    val exportHistory by viewModel.exportHistory.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(context) {
+        viewModel.loadExportHistory(context)
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -127,7 +136,27 @@ fun ReportsScreen(
                         ) {
                             Text(stringResource(R.string.reports_apply_filters))
                         }
+                        Button(
+                            onClick = { viewModel.exportCurrentReport(context, asPdf = false) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            enabled = !isLoading
+                        ) {
+                            Text(stringResource(R.string.reports_export_csv_excel))
+                        }
+                        Button(
+                            onClick = { viewModel.exportCurrentReport(context, asPdf = true) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            enabled = !isLoading
+                        ) {
+                            Text(stringResource(R.string.reports_export_pdf))
+                        }
                     }
+                }
+            }
+
+            if (exportHistory.isNotEmpty()) {
+                item {
+                    ExportHistorySection(exportHistory)
                 }
             }
 
@@ -149,6 +178,21 @@ fun ReportsScreen(
                     }
                 }
             }
+        }
+    }
+
+    exportMessage?.let { currentMessage ->
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+        ) {
+            Text(
+                text = currentMessage,
+                modifier = Modifier.padding(16.dp),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
     }
 
@@ -305,6 +349,31 @@ private fun ExportRowsSection(items: List<ReceiptExportRow>) {
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExportHistorySection(items: List<ExportShare.ExportHistoryItem>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(stringResource(R.string.reports_export_history), fontWeight = FontWeight.Bold)
+            items.forEach { item ->
+                Text(
+                    text = stringResource(
+                        R.string.export_history_item,
+                        item.timestamp,
+                        item.title,
+                        item.fileName,
+                        item.rowCount
+                    ),
+                    modifier = Modifier.padding(top = 4.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

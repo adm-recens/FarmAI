@@ -1,5 +1,6 @@
 package com.farmai.feature.receipt.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.farmai.core.domain.model.Batch
@@ -15,6 +16,7 @@ import com.farmai.core.domain.usecase.batch.ObserveBatchByIdUseCase
 import com.farmai.core.domain.usecase.batch.ObserveJobsByBatchUseCase
 import com.farmai.core.domain.usecase.batch.UpdateJobStatusParams
 import com.farmai.core.domain.usecase.batch.UpdateJobStatusUseCase
+import com.farmai.feature.receipt.ui.ExportShare
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -131,6 +133,26 @@ class BatchDetailViewModel @Inject constructor(
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    fun shareBatchCsv(context: Context, batch: Batch, jobs: List<ReceiptJob>) {
+        try {
+            ExportShare.shareBatchCsv(context, batch, jobs)
+            _message.value = "Batch CSV export started."
+            _error.value = null
+        } catch (e: Exception) {
+            _error.value = "Failed to export batch CSV: ${e.message}"
+        }
+    }
+
+    fun shareBatchPdf(context: Context, batch: Batch, jobs: List<ReceiptJob>) {
+        try {
+            ExportShare.shareBatchPdf(context, batch, jobs)
+            _message.value = "Batch PDF export started."
+            _error.value = null
+        } catch (e: Exception) {
+            _error.value = "Failed to export batch PDF: ${e.message}"
         }
     }
 
