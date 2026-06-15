@@ -30,6 +30,7 @@ Current implemented areas:
 - Smart crop UI with draggable crop rectangle and crop-box persistence
 - Reports UI with date filters and farmer/broker/monthly/deduction/export-row views
 - Receipt, batch, and report CSV/PDF export/share actions
+- Supplier management with aliases, OCR supplier-name extraction, fuzzy matching, and merge suggestions
 - Draft/confirmed receipt status
 - Local Room database
 
@@ -56,7 +57,7 @@ Current known gaps:
 - OCR workers do not yet consume stored crop boxes.
 - PDF/share/export foundation implemented; advanced export templates and a dedicated export module are pending.
 - Sync exists as a status value but no sync implementation exists.
-- No batch queue, validation UI, smart crop, ML feedback loop, training hub, or learning logs exist yet.
+- Supplier management is implemented; backend sync, ML feedback loop, training hub, and learning logs are still pending.
 
 ---
 
@@ -1124,6 +1125,26 @@ Deliverable:
 
 Supplier names from OCR can be matched reliably.
 
+Implemented in this iteration:
+
+- Added `Supplier`, `SupplierMatch`, and `SupplierMergeSuggestion` domain models.
+- Added `SupplierRepository`, supplier use cases, and `SupplierMatcher` with normalized Levenshtein-style fuzzy matching.
+- Added Room database version 4 with the `suppliers` table and explicit migration `3 -> 4`.
+- Added supplier DAO, entity, and repository implementation with alias JSON persistence.
+- Added supplier list/detail Compose screens with search, alias editing, threshold configuration, and merge suggestions.
+- Added home/navigation entry points for supplier management.
+- Added OCR supplier-name extraction in `ReceiptOcrParser` for future validation/matching workflows.
+
+Still pending:
+
+- Deeper integration of supplier suggestions into receipt validation.
+- Persistent learning from supplier corrections.
+- Backend sync of supplier aliases and merge decisions.
+
+Deliverable:
+
+Supplier names from OCR can be matched reliably.
+
 ---
 
 ### Phase 12 — ML Feedback Loop
@@ -1576,9 +1597,55 @@ Update this section after every successful iteration.
 **Next iteration:**
 - Phase 11 — Supplier Management.
 
----
+### Iteration 11 — Phase 11 Supplier Management
 
-## 12. Instructions for Future AI Development Sessions
+**Date:** 2026-06-15  
+**Status:** Completed  
+**Scope:** Added supplier management with aliases, matching, merge suggestions, navigation, and database migration.  
+**Summary:**
+- Added `Supplier`, `SupplierMatch`, and `SupplierMergeSuggestion` domain models.
+- Added `SupplierRepository`, `SupplierUseCases`, and a lightweight fuzzy `SupplierMatcher`.
+- Added Room database version 4 with the `suppliers` table and explicit migration `3 -> 4`.
+- Added supplier DAO, entity, and repository implementation with alias JSON persistence.
+- Added supplier list/detail Compose screens with search, alias editing, threshold configuration, and merge-suggestion display.
+- Added home/navigation entry points for supplier management.
+- Added OCR supplier-name extraction so supplier matching can be used from parsed receipt text.
+- Added the new `:feature:suppliers` module.
+
+**Files touched:**
+- `settings.gradle.kts`
+- `app/build.gradle.kts`
+- `app/src/main/java/com/farmai/app/navigation/FarmAINavHost.kt`
+- `app/src/main/java/com/farmai/app/navigation/HomeScreen.kt`
+- `app/src/main/res/values/strings.xml`
+- `core/domain/src/main/java/com/farmai/core/domain/model/Supplier.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/model/ParsedReceiptData.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/repository/SupplierRepository.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/usecase/supplier/SupplierUseCases.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/usecase/supplier/SupplierMatcher.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/parser/ReceiptOcrParser.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/AppDatabase.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/migration/DatabaseMigrations.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/dao/SupplierDao.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/entity/SupplierEntity.kt`
+- `core/data/src/main/java/com/farmai/core/data/repository/SupplierRepositoryImpl.kt`
+- `core/data/src/main/java/com/farmai/core/data/di/DatabaseModule.kt`
+- `feature/suppliers/build.gradle.kts`
+- `feature/suppliers/src/main/java/com/farmai/feature/suppliers/ui/SupplierListScreen.kt`
+- `feature/suppliers/src/main/java/com/farmai/feature/suppliers/ui/SupplierDetailScreen.kt`
+- `feature/suppliers/src/main/java/com/farmai/feature/suppliers/viewmodel/SupplierViewModel.kt`
+- `feature/suppliers/src/main/res/values/strings.xml`
+- `Receipt Management\App AI Context.md`
+- `Receipt Management\BROADER_SCOPE_PLANNER.md`
+
+**Verification performed:**
+- `.\gradlew :core:domain:testDebugUnitTest :app:assembleDebug`
+- Build passed successfully.
+
+**Next iteration:**
+- Phase 12 — ML Feedback Loop.
+
+---
 
 Before starting work:
 

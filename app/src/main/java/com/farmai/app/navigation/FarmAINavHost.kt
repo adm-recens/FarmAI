@@ -18,6 +18,8 @@ import com.farmai.feature.receipt.ui.ReceiptListScreen
 import com.farmai.feature.receipt.ui.ReceiptValidationScreen
 import com.farmai.feature.receipt.ui.ReportsScreen
 import com.farmai.feature.receipt.ui.SmartCropScreen
+import com.farmai.feature.suppliers.ui.SupplierDetailScreen
+import com.farmai.feature.suppliers.ui.SupplierListScreen
 
 @Composable
 fun FarmAINavHost(
@@ -33,7 +35,8 @@ fun FarmAINavHost(
                 onNavigateToBrokers = { navController.navigate("brokers") },
                 onNavigateToReceipts = { navController.navigate("receipts") },
                 onNavigateToBatches = { navController.navigate("batches") },
-                onNavigateToReports = { navController.navigate("reports") }
+                onNavigateToReports = { navController.navigate("reports") },
+                onNavigateToSuppliers = { navController.navigate("suppliers") }
             )
         }
 
@@ -73,6 +76,20 @@ fun FarmAINavHost(
         }
         composable("reports") {
             ReportsScreen(navController = navController)
+        }
+        composable("suppliers") {
+            SupplierListScreen(navController = navController)
+        }
+        composable("supplier/add") {
+            SupplierDetailScreen(navController = navController, supplierId = null)
+        }
+        composable("supplier/{supplierId}") { backStackEntry ->
+            val supplierId = backStackEntry.arguments?.getString("supplierId") ?: return@composable
+            SupplierDetailScreen(navController = navController, supplierId = supplierId)
+        }
+        composable("supplier/edit/{supplierId}") { backStackEntry ->
+            val supplierId = backStackEntry.arguments?.getString("supplierId") ?: return@composable
+            SupplierDetailScreen(navController = navController, supplierId = supplierId)
         }
         composable("batch/{batchId}") { backStackEntry ->
             val batchId = backStackEntry.arguments?.getString("batchId") ?: return@composable

@@ -81,5 +81,27 @@ object DatabaseMigrations {
         }
     }
 
-    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS suppliers (
+                    id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    aliasesJson TEXT NOT NULL DEFAULT '[]',
+                    farmerCode TEXT,
+                    confidenceThreshold REAL NOT NULL DEFAULT 0.82,
+                    createdAt INTEGER NOT NULL,
+                    updatedAt INTEGER NOT NULL,
+                    PRIMARY KEY(id)
+                )
+                """.trimIndent()
+            )
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_suppliers_name ON suppliers(name)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_suppliers_farmerCode ON suppliers(farmerCode)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_suppliers_updatedAt ON suppliers(updatedAt)")
+        }
+    }
+
+    val ALL = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 }

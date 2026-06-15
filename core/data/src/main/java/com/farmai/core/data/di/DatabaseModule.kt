@@ -8,12 +8,14 @@ import com.farmai.core.data.repository.FarmerRepositoryImpl
 import com.farmai.core.data.repository.ReceiptParserRepositoryImpl
 import com.farmai.core.data.repository.ReceiptRepositoryImpl
 import com.farmai.core.data.repository.ReportRepositoryImpl
+import com.farmai.core.data.repository.SupplierRepositoryImpl
 import com.farmai.core.domain.repository.BatchRepository
 import com.farmai.core.domain.repository.BrokerRepository
 import com.farmai.core.domain.repository.FarmerRepository
 import com.farmai.core.domain.repository.ReceiptParserRepository
 import com.farmai.core.domain.repository.ReceiptRepository
 import com.farmai.core.domain.repository.ReportRepository
+import com.farmai.core.domain.repository.SupplierRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -52,4 +54,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideReportRepository(impl: ReportRepositoryImpl): ReportRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideSupplierRepository(impl: SupplierRepositoryImpl): SupplierRepository = impl
 }

@@ -63,6 +63,7 @@ dependencies {
     implementation(project(":feature:farmer"))
     implementation(project(":feature:broker"))
     implementation(project(":feature:receipt"))
+    implementation(project(":feature:suppliers"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)

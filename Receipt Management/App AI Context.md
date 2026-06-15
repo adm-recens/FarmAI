@@ -68,6 +68,7 @@ Current build configuration:
 :feature:farmer
 :feature:broker
 :feature:receipt
+:feature:suppliers
 ```
 
 ### `:app`
@@ -216,7 +217,7 @@ Current limitations:
 - OCR text parsing now produces structured data with confidence scores and can be applied to the receipt form, but OCR orchestration is still in the UI layer.
 - Batch queue list/detail and receipt job status updates are implemented, but background WorkManager crop/OCR/parse workers are not implemented yet.
 - Smart crop UI and crop-box storage are implemented, but OCR workers do not consume cropped images yet.
-- Supplier management and sync are not implemented; export/share foundation is implemented.
+- Supplier management is implemented with aliases, OCR supplier-name extraction, fuzzy matching, and merge suggestions; backend sync is not implemented.
 
 ---
 
@@ -241,6 +242,16 @@ broker/edit/{brokerId}
 receipts
 receipt/add
 receipt/{receiptId}
+receipt/validate/{receiptId}
+receipt/edit/{receiptId}
+batches
+batch/{batchId}
+reports
+suppliers
+supplier/add
+supplier/{supplierId}
+supplier/edit/{supplierId}
+queue/job/{jobId}/crop
 ```
 
 Known navigation gaps:
@@ -274,6 +285,10 @@ Current tables:
 - `receipts`
 - `receipt_line_items`
 - `deductions`
+- `batches`
+- `receipt_jobs`
+- `validation_snapshots`
+- `suppliers`
 
 Current schema summary:
 
@@ -339,6 +354,16 @@ validation_snapshots (
   createdAt,
   createdBy,
   source
+)
+
+suppliers (
+  id PK,
+  name,
+  aliasesJson,
+  farmerCode,
+  confidenceThreshold,
+  createdAt,
+  updatedAt
 )
 ```
 
@@ -408,7 +433,7 @@ Current parser behavior:
 - Parses pasted OCR text.
 - Attempts to extract broker name/address/phone.
 - Attempts to extract voucher number/date.
-- Attempts to extract supplier/farmer code.
+- Attempts to extract supplier/farmer name and code.
 - Attempts to extract line items.
 - Attempts to extract commission, damages, unloading, advance, and other deductions.
 - Calculates parser confidence and field confidence.
@@ -418,7 +443,7 @@ Current gaps:
 - No camera capture.
 - No image OCR orchestration in a dedicated OCR/background module.
 - OCR workers do not yet consume crop boxes.
-- Supplier management and sync are not implemented; export/share foundation is implemented.
+- Supplier management is implemented with aliases, OCR supplier-name extraction, fuzzy matching, and merge suggestions; backend sync is not implemented.
 
 ---
 
@@ -1032,9 +1057,55 @@ Update this section after every successful iteration.
 **Next iteration:**
 - Phase 11 — Supplier Management.
 
----
+### Iteration 11 — Phase 11 Supplier Management
 
-## 17. Instructions for Future AI Sessions
+**Date:** 2026-06-15  
+**Status:** Completed  
+**Scope:** Added supplier management with aliases, matching, merge suggestions, navigation, and database migration.  
+**Summary:**
+- Added `Supplier`, `SupplierMatch`, and `SupplierMergeSuggestion` domain models.
+- Added `SupplierRepository`, `SupplierUseCases`, and a lightweight fuzzy `SupplierMatcher`.
+- Added Room database version 4 with the `suppliers` table and explicit migration `3 -> 4`.
+- Added supplier DAO, entity, and repository implementation with alias JSON persistence.
+- Added supplier list/detail Compose screens with search, alias editing, threshold configuration, and merge-suggestion display.
+- Added home/navigation entry points for supplier management.
+- Added OCR supplier-name extraction so supplier matching can be used from parsed receipt text.
+- Added the new `:feature:suppliers` module.
+
+**Files touched:**
+- `settings.gradle.kts`
+- `app/build.gradle.kts`
+- `app/src/main/java/com/farmai/app/navigation/FarmAINavHost.kt`
+- `app/src/main/java/com/farmai/app/navigation/HomeScreen.kt`
+- `app/src/main/res/values/strings.xml`
+- `core/domain/src/main/java/com/farmai/core/domain/model/Supplier.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/model/ParsedReceiptData.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/repository/SupplierRepository.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/usecase/supplier/SupplierUseCases.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/usecase/supplier/SupplierMatcher.kt`
+- `core/domain/src/main/java/com/farmai/core/domain/parser/ReceiptOcrParser.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/AppDatabase.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/migration/DatabaseMigrations.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/dao/SupplierDao.kt`
+- `core/data/src/main/java/com/farmai/core/data/local/entity/SupplierEntity.kt`
+- `core/data/src/main/java/com/farmai/core/data/repository/SupplierRepositoryImpl.kt`
+- `core/data/src/main/java/com/farmai/core/data/di/DatabaseModule.kt`
+- `feature/suppliers/build.gradle.kts`
+- `feature/suppliers/src/main/java/com/farmai/feature/suppliers/ui/SupplierListScreen.kt`
+- `feature/suppliers/src/main/java/com/farmai/feature/suppliers/ui/SupplierDetailScreen.kt`
+- `feature/suppliers/src/main/java/com/farmai/feature/suppliers/viewmodel/SupplierViewModel.kt`
+- `feature/suppliers/src/main/res/values/strings.xml`
+- `Receipt Management\App AI Context.md`
+- `Receipt Management\BROADER_SCOPE_PLANNER.md`
+
+**Verification performed:**
+- `.\gradlew :core:domain:testDebugUnitTest :app:assembleDebug`
+- Build passed successfully.
+
+**Next iteration:**
+- Phase 12 — ML Feedback Loop.
+
+---
 
 Before starting Android development:
 

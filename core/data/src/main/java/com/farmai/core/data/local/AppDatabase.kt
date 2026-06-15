@@ -8,6 +8,7 @@ import com.farmai.core.data.local.dao.BrokerDao
 import com.farmai.core.data.local.dao.FarmerDao
 import com.farmai.core.data.local.dao.ReceiptDao
 import com.farmai.core.data.local.dao.ReportDao
+import com.farmai.core.data.local.dao.SupplierDao
 import com.farmai.core.data.local.dao.ValidationSnapshotDao
 import com.farmai.core.data.local.dao.BatchDao
 import com.farmai.core.data.local.dao.ReceiptJobDao
@@ -18,6 +19,7 @@ import com.farmai.core.data.local.entity.ReceiptEntity
 import com.farmai.core.data.local.entity.ReceiptLineItemEntity
 import com.farmai.core.data.local.entity.BatchEntity
 import com.farmai.core.data.local.entity.ReceiptJobEntity
+import com.farmai.core.data.local.entity.SupplierEntity
 import com.farmai.core.data.local.entity.ValidationSnapshotEntity
 import com.farmai.core.data.local.migration.DatabaseMigrations
 
@@ -30,9 +32,10 @@ import com.farmai.core.data.local.migration.DatabaseMigrations
         DeductionEntity::class,
         BatchEntity::class,
         ReceiptJobEntity::class,
+        SupplierEntity::class,
         ValidationSnapshotEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -42,6 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun reportDao(): ReportDao
     abstract fun batchDao(): BatchDao
     abstract fun receiptJobDao(): ReceiptJobDao
+    abstract fun supplierDao(): SupplierDao
     abstract fun validationSnapshotDao(): ValidationSnapshotDao
 
     companion object {

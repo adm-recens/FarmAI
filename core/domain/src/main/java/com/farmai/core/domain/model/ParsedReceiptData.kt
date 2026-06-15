@@ -9,6 +9,7 @@ data class ParsedReceiptData(
     val brokerPhone: String? = null,
     val voucherNumber: String? = null,
     val voucherDate: Long? = null,
+    val supplierName: String? = null,
     val supplierCode: String? = null,
     val lineItems: List<ParsedLineItem> = emptyList(),
     val commissionPercent: Double? = null,

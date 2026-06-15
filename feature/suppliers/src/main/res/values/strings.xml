@@ -1,0 +1,29 @@
+<resources>
+    <string name="suppliers_title">Suppliers</string>
+    <string name="add_supplier">Add Supplier</string>
+    <string name="edit_supplier">Edit Supplier</string>
+    <string name="search_suppliers">Search suppliers, codes, aliases...</string>
+    <string name="no_suppliers_found">No suppliers found</string>
+    <string name="add_first_supplier">Tap + to add your first supplier</string>
+    <string name="supplier_details">Supplier Details</string>
+    <string name="supplier_name">Supplier Name</string>
+    <string name="supplier_farmer_code">Linked Farmer Code</string>
+    <string name="supplier_aliases">Aliases (comma separated)</string>
+    <string name="supplier_threshold">Match Threshold</string>
+    <string name="supplier_match_hint">Enter OCR text or supplier name to test matching</string>
+    <string name="supplier_merge_suggestions">Merge Suggestions</string>
+    <string name="no_merge_suggestions">No likely duplicate suppliers found</string>
+    <string name="supplier_name_required">Supplier name is required</string>
+    <string name="supplier_added">Supplier added successfully</string>
+    <string name="supplier_updated">Supplier updated successfully</string>
+    <string name="save">Save</string>
+    <string name="add">Add</string>
+    <string name="reset">Reset</string>
+    <string name="back">Back</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="threshold_value">%1$s</string>
+    <string name="alias_count">%1$d aliases</string>
+    <string name="confidence">%1$d%% match</string>
+    <string name="merge_reason">%1$s</string>
+</resources>

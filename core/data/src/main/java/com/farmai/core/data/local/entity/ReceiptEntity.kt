@@ -21,7 +21,8 @@ import kotlinx.serialization.json.Json
         Index("farmerId"),
         Index("brokerId"),
         Index("voucherDate"),
-        Index("status")
+        Index("status"),
+        Index("validationStatus")
     ]
 )
 data class ReceiptEntity(

@@ -23,7 +23,8 @@ fun HomeScreen(
     onNavigateToBrokers: () -> Unit,
     onNavigateToReceipts: () -> Unit,
     onNavigateToBatches: () -> Unit,
-    onNavigateToReports: () -> Unit
+    onNavigateToReports: () -> Unit,
+    onNavigateToSuppliers: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -88,6 +89,15 @@ fun HomeScreen(
                 .padding(vertical = 8.dp)
         ) {
             Text(stringResource(R.string.manage_reports))
+        }
+
+        Button(
+            onClick = onNavigateToSuppliers,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Text(stringResource(R.string.manage_suppliers))
         }
     }
 }

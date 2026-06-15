@@ -33,6 +33,7 @@ object ReceiptOcrParser {
         val brokerParts = extractBroker(lines)
         val voucherNumber = extractVoucherNumber(lines)
         val voucherDate = extractVoucherDate(lines)
+        val supplierName = extractSupplierName(lines)
         val supplierCode = extractSupplierCode(lines)
         val lineItems = parseLineItems(lines)
         val deductionParts = extractDeductions(lines)
@@ -43,6 +44,7 @@ object ReceiptOcrParser {
         if (brokerParts.phone != null) fieldConfidence["brokerPhone"] = 0.85
         if (voucherNumber != null) fieldConfidence["voucherNumber"] = 0.80
         if (voucherDate != null) fieldConfidence["voucherDate"] = 0.85
+        if (supplierName != null) fieldConfidence["supplierName"] = 0.70
         if (supplierCode != null) fieldConfidence["supplierCode"] = 0.75
         if (lineItems.isNotEmpty()) fieldConfidence["lineItems"] = (0.65 + minOf(lineItems.size * 0.05, 0.20))
         if (deductionParts.hasDeductions()) fieldConfidence["deductions"] = 0.70
@@ -59,6 +61,7 @@ object ReceiptOcrParser {
             brokerPhone = brokerParts.phone,
             voucherNumber = voucherNumber,
             voucherDate = voucherDate,
+            supplierName = supplierName,
             supplierCode = supplierCode,
             lineItems = lineItems,
             commissionPercent = deductionParts.commissionPercent,
@@ -132,6 +135,22 @@ object ReceiptOcrParser {
         }
 
         return lines.firstNotNullOfOrNull { line -> parseReceiptDate(line) }
+    }
+
+    private fun extractSupplierName(lines: List<String>): String? {
+        lines.forEachIndexed { index, line ->
+            val upperLine = line.uppercase(Locale.ROOT)
+            if (upperLine.contains("SUPPLIER NAME") || upperLine.contains("FARMER NAME") || upperLine.contains("PRODUCER NAME") || upperLine.contains("GROWER NAME")) {
+                val afterLabel = extractAfterLabel(
+                    line,
+                    listOf("SUPPLIER NAME", "FARMER NAME", "PRODUCER NAME", "GROWER NAME", "SUPPLIER", "FARMER", "PRODUCER", "GROWER", "NAME")
+                )
+                if (!afterLabel.isNullOrBlank()) return afterLabel
+                return lines.getOrNull(index + 1)?.takeIf { it.isNotBlank() }
+            }
+        }
+
+        return null
     }
 
     private fun extractSupplierCode(lines: List<String>): String? {
