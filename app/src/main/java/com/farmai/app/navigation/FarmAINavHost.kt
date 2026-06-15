@@ -16,6 +16,7 @@ import com.farmai.feature.receipt.ui.ReceiptDetailScreen
 import com.farmai.feature.receipt.ui.ReceiptEntryScreen
 import com.farmai.feature.receipt.ui.ReceiptListScreen
 import com.farmai.feature.receipt.ui.ReceiptValidationScreen
+import com.farmai.feature.receipt.ui.ReportsScreen
 import com.farmai.feature.receipt.ui.SmartCropScreen
 
 @Composable
@@ -31,7 +32,8 @@ fun FarmAINavHost(
                 onNavigateToFarmers = { navController.navigate("farmers") },
                 onNavigateToBrokers = { navController.navigate("brokers") },
                 onNavigateToReceipts = { navController.navigate("receipts") },
-                onNavigateToBatches = { navController.navigate("batches") }
+                onNavigateToBatches = { navController.navigate("batches") },
+                onNavigateToReports = { navController.navigate("reports") }
             )
         }
 
@@ -68,6 +70,9 @@ fun FarmAINavHost(
         }
         composable("batches") {
             BatchListScreen(navController = navController)
+        }
+        composable("reports") {
+            ReportsScreen(navController = navController)
         }
         composable("batch/{batchId}") { backStackEntry ->
             val batchId = backStackEntry.arguments?.getString("batchId") ?: return@composable

@@ -216,7 +216,7 @@ Current limitations:
 - OCR text parsing now produces structured data with confidence scores and can be applied to the receipt form, but OCR orchestration is still in the UI layer.
 - Batch queue list/detail and receipt job status updates are implemented, but background WorkManager crop/OCR/parse workers are not implemented yet.
 - Smart crop UI and crop-box storage are implemented, but OCR workers do not consume cropped images yet.
-- ML feedback training, reports UI, export UI, supplier management, and sync are not implemented.
+- Export UI, supplier management, and sync are not implemented.
 
 ---
 
@@ -418,52 +418,42 @@ Current gaps:
 - No camera capture.
 - No image OCR orchestration in a dedicated OCR/background module.
 - OCR workers do not yet consume crop boxes.
-- No ML feedback loop, reports UI, export UI, supplier management, or sync implementation.
+- Export UI, supplier management, and sync are not implemented.
 
 ---
 
 ## 9. Current Reports Status
 
-Report queries exist in:
+Report queries, repository, use cases, and UI now exist in:
 
 ```text
 core/data/src/main/java/com/farmai/core/data/local/dao/ReportDao.kt
-```
-
-Report repository exists in:
-
-```text
 core/data/src/main/java/com/farmai/core/data/repository/ReportRepositoryImpl.kt
-```
-
-Report use cases exist in:
-
-```text
 core/domain/src/main/java/com/farmai/core/domain/usecase/report/ReportUseCases.kt
+feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReportsScreen.kt
+feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/ReportsViewModel.kt
 ```
 
-Implemented at data/domain level:
+Implemented at data/domain/UI level:
 
 - Farmer summaries
 - Broker settlements
 - Monthly trends
 - Deduction analysis
 - Export row queries
+- Reports screen with date filters and report type switching
+- Home/navigation entry point for reports
+
+Important fix:
+
+- Report queries now aggregate line items and deductions per receipt before joining, preventing deduction totals from being multiplied on multi-line receipts.
 
 Not implemented:
 
-- Reports screen
-- Reports navigation
 - PDF export
 - Excel export
 - CSV export
 - Share sheet
-
-Important limitation:
-
-- Report queries join receipts, line items, and deductions directly.
-- For multi-line receipts, deduction sums can be multiplied by the number of line items.
-- This must be fixed before reports are trusted.
 
 ---
 
@@ -972,6 +962,38 @@ Update this section after every successful iteration.
 
 **Next iteration:**
 - Phase 9 — Reports.
+
+### Iteration 9 — Phase 9 Reports
+
+**Date:** 2026-06-15
+**Status:** Completed
+**Scope:** Added reports UI, report navigation, date filtering, and fixed multi-line deduction aggregation.
+**Summary:**
+- Added `ReportsScreen` with farmer, broker, monthly, deduction, and export-row report views.
+- Added `ReportsViewModel` with date-range parsing, report type selection, loading/error states, and report data state.
+- Added home navigation entry for reports.
+- Fixed `ReportDao` queries to aggregate line items and deductions per receipt before joining, preventing deduction duplication on multi-line receipts.
+- Added report UI strings for filters, report sections, and metric cards.
+- Kept PDF/Excel/CSV/share export implementation for the next phase.
+
+**Files touched:**
+- `core/data/src/main/java/com/farmai/core/data/local/dao/ReportDao.kt`
+- `app/src/main/java/com/farmai/app/navigation/HomeScreen.kt`
+- `app/src/main/java/com/farmai/app/navigation/FarmAINavHost.kt`
+- `app/src/main/res/values/strings.xml`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/ui/ReportsScreen.kt`
+- `feature/receipt/src/main/java/com/farmai/feature/receipt/viewmodel/ReportsViewModel.kt`
+- `feature/receipt/src/main/res/values/strings.xml`
+- `Receipt Management\App AI Context.md`
+- `Receipt Management\BROADER_SCOPE_PLANNER.md`
+
+**Verification performed:**
+- `.\gradlew :core:domain:testDebugUnitTest`
+- `.\gradlew :app:assembleDebug`
+- Both commands passed successfully.
+
+**Next iteration:**
+- Phase 10 — Export/Share.
 
 ---
 

@@ -22,7 +22,8 @@ fun HomeScreen(
     onNavigateToFarmers: () -> Unit,
     onNavigateToBrokers: () -> Unit,
     onNavigateToReceipts: () -> Unit,
-    onNavigateToBatches: () -> Unit
+    onNavigateToBatches: () -> Unit,
+    onNavigateToReports: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -78,6 +79,15 @@ fun HomeScreen(
                 .padding(vertical = 8.dp)
         ) {
             Text(stringResource(R.string.manage_batches))
+        }
+
+        Button(
+            onClick = onNavigateToReports,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        ) {
+            Text(stringResource(R.string.manage_reports))
         }
     }
 }

@@ -5,4 +5,5 @@
     <string name="manage_brokers">Manage Brokers</string>
     <string name="manage_receipts">Manage Receipts</string>
     <string name="manage_batches">Manage Batches</string>
+    <string name="manage_reports">Manage Reports</string>
 </resources>
