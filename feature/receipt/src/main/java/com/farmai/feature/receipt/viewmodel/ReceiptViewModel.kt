@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.farmai.core.domain.mapper.ParsedReceiptMapper
+import com.farmai.core.domain.model.Broker
 import com.farmai.core.domain.model.Deduction
 import com.farmai.core.domain.model.DeductionType
+import com.farmai.core.domain.model.Farmer
 import com.farmai.core.domain.model.ParsedReceiptData
 import com.farmai.core.domain.model.Receipt
 import com.farmai.core.domain.model.ReceiptLineItem
@@ -212,7 +214,9 @@ class ReceiptEntryViewModel @Inject constructor(
     private val parseReceiptTextUseCase: ParseReceiptTextUseCase,
     private val getReceiptByIdUseCase: GetReceiptByIdUseCase,
     private val getLineItemsUseCase: GetLineItemsUseCase,
-    private val getDeductionsUseCase: GetDeductionsUseCase
+    private val getDeductionsUseCase: GetDeductionsUseCase,
+    private val getAllFarmersUseCase: com.farmai.core.domain.usecase.farmer.GetAllFarmersUseCase,
+    private val getAllBrokersUseCase: com.farmai.core.domain.usecase.broker.GetAllBrokersUseCase
 ) : ViewModel() {
 
     private val _receipt = MutableStateFlow<Receipt?>(null)
@@ -235,6 +239,12 @@ class ReceiptEntryViewModel @Inject constructor(
 
     private val _parseMessage = MutableStateFlow<String?>(null)
     val parseMessage: StateFlow<String?> = _parseMessage
+
+    private val _farmers = MutableStateFlow<List<Farmer>>(emptyList())
+    val farmers: StateFlow<List<Farmer>> = _farmers
+
+    private val _brokers = MutableStateFlow<List<Broker>>(emptyList())
+    val brokers: StateFlow<List<Broker>> = _brokers
 
     fun loadReceipt(receiptId: String) {
         viewModelScope.launch {
@@ -357,6 +367,15 @@ class ReceiptEntryViewModel @Inject constructor(
         if (index >= 0 && index < current.size) {
             current[index] = current[index].copy(amount = amount)
             _deductions.value = current
+        }
+    }
+
+    fun loadFarmersAndBrokers() {
+        viewModelScope.launch {
+            try { _farmers.value = getAllFarmersUseCase(NoParams.INSTANCE) } catch (_: Exception) {}
+        }
+        viewModelScope.launch {
+            try { _brokers.value = getAllBrokersUseCase(NoParams.INSTANCE) } catch (_: Exception) {}
         }
     }
 

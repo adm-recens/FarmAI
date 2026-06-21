@@ -35,6 +35,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +50,7 @@ import androidx.navigation.NavController
 import com.farmai.core.domain.model.Farmer
 import com.farmai.feature.farmer.R
 import com.farmai.feature.farmer.viewmodel.FarmerDetailViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,8 +73,8 @@ fun FarmerDetailScreen(
     val farmerUpdatedMessage = stringResource(R.string.farmer_updated)
     val farmerAddedMessage = stringResource(R.string.farmer_added)
     val snackbarHostState = remember { SnackbarHostState() }
-    var showSnackbar by remember { mutableStateOf(false) }
     var snackbarMessage by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(farmerId) {
         viewModel.loadFarmer(farmerId)
@@ -198,7 +200,7 @@ fun FarmerDetailScreen(
                         onClick = {
                             if (name.isBlank() || code.isBlank()) {
                                 snackbarMessage = nameCodeRequiredMessage
-                                showSnackbar = true
+                                scope.launch { snackbarHostState.showSnackbar(snackbarMessage) }
                                 return@Button
                             }
                             val newFarmer = Farmer(
@@ -211,7 +213,7 @@ fun FarmerDetailScreen(
                             )
                             viewModel.saveFarmer(newFarmer)
                             snackbarMessage = if (isEditing) farmerUpdatedMessage else farmerAddedMessage
-                            showSnackbar = true
+                            scope.launch { snackbarHostState.showSnackbar(snackbarMessage) }
                             navController.popBackStack()
                         },
                         modifier = Modifier.weight(1f, fill = true).height(48.dp),
@@ -256,7 +258,7 @@ fun FarmerDetailScreen(
 
         error?.let { msg ->
             snackbarMessage = msg
-            showSnackbar = true
+            scope.launch { snackbarHostState.showSnackbar(snackbarMessage) }
         }
     }
 

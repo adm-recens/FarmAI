@@ -79,9 +79,9 @@ class BatchRepositoryImpl @Inject constructor(
         job?.let { batchDao.updateBatchCounts(it.batchId, now) }
     }
 
-    override suspend fun updateJobCropBox(jobId: String, cropBoxJson: String, confidenceScore: Double) {
+    override suspend fun updateJobCropBox(jobId: String, cropBoxJson: String, confidenceScore: Double, croppedImagePath: String?) {
         val now = System.currentTimeMillis()
-        receiptJobDao.updateJobCropBox(jobId, cropBoxJson, confidenceScore, now)
+        receiptJobDao.updateJobCropBox(jobId, cropBoxJson, croppedImagePath, confidenceScore, now)
         val job = receiptJobDao.getJobById(jobId).first()
         job?.let { batchDao.updateBatchCounts(it.batchId, now) }
     }
@@ -91,6 +91,28 @@ class BatchRepositoryImpl @Inject constructor(
         receiptJobDao.markJobFailed(jobId, error, now)
         val job = receiptJobDao.getJobById(jobId).first()
         job?.let { batchDao.updateBatchCounts(it.batchId, now) }
+    }
+
+    override suspend fun updateJobCroppedImage(jobId: String, croppedImagePath: String) {
+        val now = System.currentTimeMillis()
+        receiptJobDao.updateJobCroppedImage(jobId, croppedImagePath, now)
+        val job = receiptJobDao.getJobById(jobId).first()
+        job?.let { batchDao.updateBatchCounts(it.batchId, now) }
+    }
+
+    override suspend fun updateJobOcrResult(jobId: String, ocrRawText: String, confidenceScore: Double) {
+        val now = System.currentTimeMillis()
+        receiptJobDao.updateJobOcrResult(jobId, ocrRawText, confidenceScore, now)
+        val job = receiptJobDao.getJobById(jobId).first()
+        job?.let { batchDao.updateBatchCounts(it.batchId, now) }
+    }
+
+    override suspend fun getQueuedJobs(batchId: String): List<ReceiptJob> {
+        return receiptJobDao.getQueuedJobs(batchId).map { it.toDomain() }
+    }
+
+    override suspend fun getCroppedJobs(batchId: String): List<ReceiptJob> {
+        return receiptJobDao.getCroppedJobs(batchId).map { it.toDomain() }
     }
 
     override suspend fun deleteJob(jobId: String) {
@@ -124,6 +146,7 @@ private fun ReceiptJobEntity.toDomain(): ReceiptJob = ReceiptJob(
     receiptId = receiptId,
     status = ReceiptJobStatus.valueOf(status),
     imagePath = imagePath,
+    croppedImagePath = croppedImagePath,
     cropBoxJson = cropBoxJson,
     ocrRawText = ocrRawText,
     ocrLayoutJson = ocrLayoutJson,

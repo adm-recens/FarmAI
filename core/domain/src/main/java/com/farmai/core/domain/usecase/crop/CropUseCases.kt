@@ -20,7 +20,7 @@ class UpdateJobCropBoxUseCase @Inject constructor(
     private val repository: BatchRepository
 ) : UseCase<UpdateJobCropBoxParams, Unit> {
     override suspend operator fun invoke(params: UpdateJobCropBoxParams) {
-        repository.updateJobCropBox(params.jobId, params.cropBoxJson, params.confidenceScore)
+        repository.updateJobCropBox(params.jobId, params.cropBoxJson, params.confidenceScore, params.croppedImagePath)
     }
 }
 
@@ -40,7 +40,8 @@ class GenerateAutoCropBoxUseCase @Inject constructor() : UseCase<GenerateAutoCro
 data class UpdateJobCropBoxParams(
     val jobId: String,
     val cropBoxJson: String,
-    val confidenceScore: Double
+    val confidenceScore: Double,
+    val croppedImagePath: String? = null
 )
 
 data class GenerateAutoCropBoxParams(

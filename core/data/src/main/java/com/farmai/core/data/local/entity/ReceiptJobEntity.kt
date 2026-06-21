@@ -34,6 +34,7 @@ data class ReceiptJobEntity(
     val receiptId: String? = null,
     val status: String = ReceiptJobStatus.QUEUED.name,
     val imagePath: String? = null,
+    val croppedImagePath: String? = null,
     val cropBoxJson: String? = null,
     val ocrRawText: String? = null,
     val ocrLayoutJson: String? = null,

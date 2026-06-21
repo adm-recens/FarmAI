@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import java.io.File
+import java.io.FileOutputStream
 
 @HiltViewModel
 class SmartCropViewModel @Inject constructor(
@@ -134,6 +136,10 @@ class SmartCropViewModel @Inject constructor(
             _error.value = "No crop box available."
             return
         }
+        val imagePath = jobData.imagePath ?: run {
+            _error.value = "No image to crop."
+            return
+        }
         val encodedCropBox = CropBoxJson.encode(
             currentCropBox.copy(
                 manualOverride = manualOverride,
@@ -143,11 +149,15 @@ class SmartCropViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                val croppedPath = withContext(Dispatchers.Default) {
+                    generateCroppedImageFile(imagePath, currentCropBox)
+                }
                 updateJobCropBoxUseCase(
                     UpdateJobCropBoxParams(
                         jobId = jobData.id,
                         cropBoxJson = encodedCropBox,
-                        confidenceScore = if (manualOverride) 0.90 else currentCropBox.confidence.toDouble()
+                        confidenceScore = if (manualOverride) 0.90 else currentCropBox.confidence.toDouble(),
+                        croppedImagePath = croppedPath
                     )
                 )
                 _message.value = "Crop box saved."
@@ -247,6 +257,23 @@ class SmartCropViewModel @Inject constructor(
         } else {
             null
         }
+    }
+
+    private fun generateCroppedImageFile(imagePath: String, cropBox: CropBox): String {
+        val bitmap = BitmapFactory.decodeFile(imagePath) ?: throw IllegalStateException("Cannot decode image")
+        val x = cropBox.x.toInt().coerceIn(0, bitmap.width - 1)
+        val y = cropBox.y.toInt().coerceIn(0, bitmap.height - 1)
+        val w = cropBox.width.toInt().coerceAtMost(bitmap.width - x).coerceAtLeast(1)
+        val h = cropBox.height.toInt().coerceAtMost(bitmap.height - y).coerceAtLeast(1)
+        val cropped = Bitmap.createBitmap(bitmap, x, y, w, h)
+        val directory = File(imagePath).parentFile ?: File(".")
+        val file = File(directory, "cropped_${System.currentTimeMillis()}.jpg")
+        FileOutputStream(file).use { output ->
+            cropped.compress(Bitmap.CompressFormat.JPEG, 90, output)
+        }
+        cropped.recycle()
+        bitmap.recycle()
+        return file.absolutePath
     }
 }
 

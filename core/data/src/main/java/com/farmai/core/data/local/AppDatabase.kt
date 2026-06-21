@@ -35,7 +35,7 @@ import com.farmai.core.data.local.migration.DatabaseMigrations
         SupplierEntity::class,
         ValidationSnapshotEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

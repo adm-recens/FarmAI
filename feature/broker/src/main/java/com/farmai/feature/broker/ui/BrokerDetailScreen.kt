@@ -35,6 +35,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +50,7 @@ import androidx.navigation.NavController
 import com.farmai.core.domain.model.Broker
 import com.farmai.feature.broker.R
 import com.farmai.feature.broker.viewmodel.BrokerDetailViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,8 +73,8 @@ fun BrokerDetailScreen(
     val brokerUpdatedMessage = stringResource(R.string.broker_updated)
     val brokerAddedMessage = stringResource(R.string.broker_added)
     val snackbarHostState = remember { SnackbarHostState() }
-    var showSnackbar by remember { mutableStateOf(false) }
     var snackbarMessage by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(brokerId) {
         viewModel.loadBroker(brokerId)
@@ -189,7 +191,7 @@ fun BrokerDetailScreen(
                         onClick = {
                             if (name.isBlank() || address.isBlank() || phone.isBlank()) {
                                 snackbarMessage = nameAddressPhoneRequiredMessage
-                                showSnackbar = true
+                                scope.launch { snackbarHostState.showSnackbar(snackbarMessage) }
                                 return@Button
                             }
                             val commissionValue = commission.toDoubleOrNull() ?: 4.0
@@ -202,7 +204,7 @@ fun BrokerDetailScreen(
                             )
                             viewModel.saveBroker(newBroker)
                             snackbarMessage = if (isEditing) brokerUpdatedMessage else brokerAddedMessage
-                            showSnackbar = true
+                            scope.launch { snackbarHostState.showSnackbar(snackbarMessage) }
                             navController.popBackStack()
                         },
                         modifier = Modifier.weight(1f, fill = true).height(48.dp),
@@ -246,7 +248,7 @@ fun BrokerDetailScreen(
 
         error?.let { msg ->
             snackbarMessage = msg
-            showSnackbar = true
+            scope.launch { snackbarHostState.showSnackbar(snackbarMessage) }
         }
     }
 

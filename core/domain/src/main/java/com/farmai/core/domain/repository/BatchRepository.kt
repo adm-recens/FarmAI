@@ -15,7 +15,11 @@ interface BatchRepository {
     suspend fun createBatch(name: String, notes: String?): Batch
     suspend fun addReceiptJob(batchId: String, imagePath: String): ReceiptJob
     suspend fun updateJobStatus(jobId: String, status: ReceiptJobStatus)
-    suspend fun updateJobCropBox(jobId: String, cropBoxJson: String, confidenceScore: Double)
+    suspend fun updateJobCropBox(jobId: String, cropBoxJson: String, confidenceScore: Double, croppedImagePath: String? = null)
+    suspend fun updateJobCroppedImage(jobId: String, croppedImagePath: String)
+    suspend fun updateJobOcrResult(jobId: String, ocrRawText: String, confidenceScore: Double)
+    suspend fun getQueuedJobs(batchId: String): List<ReceiptJob>
+    suspend fun getCroppedJobs(batchId: String): List<ReceiptJob>
     suspend fun markJobFailed(jobId: String, error: String?)
     suspend fun deleteJob(jobId: String)
     suspend fun deleteBatch(batchId: String)

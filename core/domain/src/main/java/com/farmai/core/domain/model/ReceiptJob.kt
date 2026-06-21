@@ -6,6 +6,7 @@ data class ReceiptJob(
     val receiptId: String? = null,
     val status: ReceiptJobStatus = ReceiptJobStatus.QUEUED,
     val imagePath: String? = null,
+    val croppedImagePath: String? = null,
     val cropBoxJson: String? = null,
     val ocrRawText: String? = null,
     val ocrLayoutJson: String? = null,

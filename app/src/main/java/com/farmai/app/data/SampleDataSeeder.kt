@@ -8,17 +8,21 @@ import com.farmai.core.data.local.entity.FarmerEntity
 import com.farmai.core.data.local.entity.ReceiptEntity
 import com.farmai.core.data.local.entity.ReceiptLineItemEntity
 import com.farmai.core.domain.model.ReceiptStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 object SampleDataSeeder {
+
     fun seed(context: Context) {
         val database = AppDatabase.getInstance(context)
-        runBlocking {
+        val scope = CoroutineScope(Dispatchers.IO)
+        scope.launch {
             val farmerCount = database.farmerDao().getAllFarmers().first().size
-            if (farmerCount > 0) return@runBlocking
+            if (farmerCount > 0) return@launch
 
             val broker = BrokerEntity(
                 id = "BROKER_AHMED_SHARIF",
